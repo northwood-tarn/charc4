@@ -26,7 +26,7 @@
     "min_level": 0,
     "requirements": {},
     "effects": {},
-    "notes": "As an action, and through the use of a Healer's Kit, you can allow a creature to spend a Hit Die. They gain that number plus your Proficiency Bonus. Reroll 1s on dice used for any healing purpose."
+    "notes": "As an action, and by consuming one use of a Healer's Kit, you can allow a creature to spend a Hit Die. They regain hit points equal to the die plus your Proficiency Bonus. You reroll 1s on dice used for any healing purpose."
   },
   {
     "feat_id": "lucky",

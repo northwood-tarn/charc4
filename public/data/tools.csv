@@ -1,38 +1,38 @@
-tool_id,tool_name
-alchemists_supplies,Alchemist's Supplies
-brewers_supplies,Brewer's Supplies
-calligraphers_supplies,Calligrapher's Supplies
-carpenters_tools,Carpenter's Tools
-cartographers_tools,Cartographer's Tools
-cobblers_tools,Cobbler's Tools
-cooks_utensils,Cook's Utensils
-glassblowers_tools,Glassblower's Tools
-jewelers_tools,Jewelers' Tools
-leatherworkers_tools,Leatherworker's Tools
-masons_tools,Mason's Tools
-painters_supplies,Painter's Supplies
-potters_tools,Potter's Tools
-smiths_tools,Smith's Tools
-tinkers_tools,Tinker's Tools
-weavers_tools,Weaver's Tools
-woodcarvers_tools,Woodcarver's Tools
-dice_set,Dice Set
-dragonchess_set,Dragonchess Set
-playing_card_set,Playing Card Set
-three_dragon_ante_set,Three-Dragon Ante Set
-bagpipes,Bagpipes
-drum,Drum
-dulcimer,Dulcimer
-flute,Flute
-horn,Horn
-lute,Lute
-lyre,Lyre
-pan_flute,Pan Flute
-shawm,Shawm
-viol,Viol
-disguise_kit,Disguise Kit
-forgery_kit,Forgery Kit
-herbalism_kit,Herbalism Kit
-navigator_tools,Navigator's Tools
-poisoners_kit,Poisoner's Kit
-thieves_tools,Thieves' Tools
+tool_id,tool_name,tool_type
+alchemists_supplies,Alchemist's Supplies,tool
+brewers_supplies,Brewer's Supplies,tool
+calligraphers_supplies,Calligrapher's Supplies,tool
+carpenters_tools,Carpenter's Tools,tool
+cartographers_tools,Cartographer's Tools,tool
+cobblers_tools,Cobbler's Tools,tool
+cooks_utensils,Cook's Utensils,tool
+glassblowers_tools,Glassblower's Tools,tool
+jewelers_tools,Jewelers' Tools,tool
+leatherworkers_tools,Leatherworker's Tools,tool
+masons_tools,Mason's Tools,tool
+painters_supplies,Painter's Supplies,tool
+potters_tools,Potter's Tools,tool
+smiths_tools,Smith's Tools,tool
+tinkers_tools,Tinker's Tools,tool
+weavers_tools,Weaver's Tools,tool
+woodcarvers_tools,Woodcarver's Tools,tool
+dice_set,Dice Set,tool
+dragonchess_set,Dragonchess Set,tool
+playing_card_set,Playing Card Set,tool
+three_dragon_ante_set,Three-Dragon Ante Set,tool
+bagpipes,Bagpipes,instrument
+drum,Drum,instrument
+dulcimer,Dulcimer,instrument
+flute,Flute,instrument
+horn,Horn,instrument
+lute,Lute,instrument
+lyre,Lyre,instrument
+pan_flute,Pan Flute,instrument
+shawm,Shawm,instrument
+viol,Viol,instrument
+disguise_kit,Disguise Kit,kit
+forgery_kit,Forgery Kit,kit
+herbalism_kit,Herbalism Kit,kit
+navigator_tools,Navigator's Tools,tool
+poisoners_kit,Poisoner's Kit,kit
+thieves_tools,Thieves' Tools,tool
