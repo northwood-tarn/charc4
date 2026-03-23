@@ -1,0 +1,79 @@
+class,class_id,subclass,subclass_id,level,spell_level
+
+Bard,bard,"","",1,1
+Bard,bard,"","",3,2
+Bard,bard,"","",5,3
+Bard,bard,"","",7,4
+Bard,bard,"","",9,5
+Bard,bard,"","",11,6
+Bard,bard,"","",13,7
+Bard,bard,"","",15,8
+Bard,bard,"","",17,9
+
+Cleric,cleric,"","",1,1
+Cleric,cleric,"","",3,2
+Cleric,cleric,"","",5,3
+Cleric,cleric,"","",7,4
+Cleric,cleric,"","",9,5
+Cleric,cleric,"","",11,6
+Cleric,cleric,"","",13,7
+Cleric,cleric,"","",15,8
+Cleric,cleric,"","",17,9
+
+Druid,druid,"","",1,1
+Druid,druid,"","",3,2
+Druid,druid,"","",5,3
+Druid,druid,"","",7,4
+Druid,druid,"","",9,5
+Druid,druid,"","",11,6
+Druid,druid,"","",13,7
+Druid,druid,"","",15,8
+Druid,druid,"","",17,9
+
+Sorcerer,sorcerer,"","",1,1
+Sorcerer,sorcerer,"","",3,2
+Sorcerer,sorcerer,"","",5,3
+Sorcerer,sorcerer,"","",7,4
+Sorcerer,sorcerer,"","",9,5
+Sorcerer,sorcerer,"","",11,6
+Sorcerer,sorcerer,"","",13,7
+Sorcerer,sorcerer,"","",15,8
+Sorcerer,sorcerer,"","",17,9
+
+Wizard,wizard,"","",1,1
+Wizard,wizard,"","",3,2
+Wizard,wizard,"","",5,3
+Wizard,wizard,"","",7,4
+Wizard,wizard,"","",9,5
+Wizard,wizard,"","",11,6
+Wizard,wizard,"","",13,7
+Wizard,wizard,"","",15,8
+Wizard,wizard,"","",17,9
+
+Warlock,warlock,"","",1,1
+Warlock,warlock,"","",3,2
+Warlock,warlock,"","",5,3
+Warlock,warlock,"","",7,4
+Warlock,warlock,"","",9,5
+
+Paladin,paladin,"","",2,1
+Paladin,paladin,"","",5,2
+Paladin,paladin,"","",9,3
+Paladin,paladin,"","",13,4
+Paladin,paladin,"","",17,5
+
+Ranger,ranger,"","",2,1
+Ranger,ranger,"","",5,2
+Ranger,ranger,"","",9,3
+Ranger,ranger,"","",13,4
+Ranger,ranger,"","",17,5
+
+Fighter,fighter,Eldritch Knight,eldritch_knight,3,1
+Fighter,fighter,Eldritch Knight,eldritch_knight,7,2
+Fighter,fighter,Eldritch Knight,eldritch_knight,13,3
+Fighter,fighter,Eldritch Knight,eldritch_knight,19,4
+
+Rogue,rogue,Arcane Trickster,arcane_trickster,3,1
+Rogue,rogue,Arcane Trickster,arcane_trickster,7,2
+Rogue,rogue,Arcane Trickster,arcane_trickster,13,3
+Rogue,rogue,Arcane Trickster,arcane_trickster,19,4

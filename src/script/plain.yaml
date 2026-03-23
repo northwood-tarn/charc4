@@ -1,0 +1,57 @@
+- id: start
+  text: |
+    Welcome to character creation.
+  trigger: NAME_PICKER
+  next: after_name
+
+- id: after_name
+  text: |
+    What is your background?
+  trigger: BACKGROUND_PICKER
+  next: after_background
+
+- id: after_background
+  text: |
+    What kind of hero are you?
+  trigger: CLASS_PICKER
+  next: after_species
+
+- id: after_species
+  text: |
+    What ancestry defines you?
+  trigger: SPECIES_PICKER
+  next: after_feats
+
+- id: after_feats
+  text: |
+    What things can you do that render you remarkable?
+  trigger: FEAT_PICKER
+  next: after_class_features
+
+- id: after_class_features
+  text: |
+    Your class talents and special training now emerge.
+  trigger: CLASS_FEATURE_PICKER
+  next: after_species_features
+
+- id: after_species_features
+  text: |
+    Your heritage grants additional traits.
+  trigger: SPECIES_FEATURE_PICKER
+  next: after_spells
+
+- id: after_spells
+  text: |
+    Your magical knowledge is determined.
+  trigger: SPELL_PICKER
+  next: after_gear
+
+- id: after_gear
+  text: |
+    What equipment do you carry?
+  trigger: GEAR_PICKER
+  next: complete
+
+- id: complete
+  text: |
+    Your character is complete.
