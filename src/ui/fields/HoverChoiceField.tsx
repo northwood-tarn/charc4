@@ -186,6 +186,11 @@ export function HoverChoiceField({
 
       updateValue(nextValues);
       emitOptionDetail(option);
+
+      if (!exists && maxSelections && nextValues.length >= maxSelections) {
+        setIsOpen(false);
+      }
+
       return;
     }
 

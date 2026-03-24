@@ -3,6 +3,7 @@ export type ClassOption = {
   label: string;
   description: string;
   abilityPriority: string;
+  skillProfs: string;
 };
 
 
@@ -40,6 +41,13 @@ function parseCsvRow(row: string): string[] {
   return result;
 }
 
+function normalizeSkillId(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
 function parseCsv(text: string): ClassOption[] {
   const lines = text
     .split('\n')
@@ -53,6 +61,7 @@ function parseCsv(text: string): ClassOption[] {
   const nameIndex = header.indexOf('name');
   const descriptionIndex = header.indexOf('description');
   const abilityPriorityIndex = header.indexOf('ability_priority');
+  const skillProfsIndex = header.indexOf('default_skills');
 
   if (
     idIndex === -1 ||
@@ -72,10 +81,18 @@ function parseCsv(text: string): ClassOption[] {
     const name = cols[nameIndex];
     const description = cols[descriptionIndex] ?? '';
     const abilityPriority = cols[abilityPriorityIndex] ?? '';
+    const rawSkillProfs = skillProfsIndex === -1 ? '' : cols[skillProfsIndex] ?? '';
+    const skillProfs = rawSkillProfs
+      ? rawSkillProfs
+          .split('|')
+          .map((entry) => normalizeSkillId(entry.trim()))
+          .filter((entry) => entry.length > 0)
+          .join('|')
+      : '';
 
     if (!id || !name) continue;
 
-    options.push({ value: id, label: name, description, abilityPriority });
+    options.push({ value: id, label: name, description, abilityPriority, skillProfs });
   }
 
   return options;

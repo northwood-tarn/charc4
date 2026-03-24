@@ -18,10 +18,21 @@ import {
 type ClassOptionWithAbilityPriority = ClassOption & {
   ability_priority?: string;
   abilityPriority?: string;
+  skill_profs?: string;
+  skillProfs?: string;
 };
 
 function getOptionDescription(option: { description?: string } | null | undefined): string {
   return option?.description ?? '';
+}
+
+function parseSkillProfString(value: string | undefined): string[] {
+  return value
+    ? value
+        .split('|')
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0)
+    : [];
 }
 
 function renderClassDetail(
@@ -178,6 +189,15 @@ export function ClassPicker({ context, onResolve }: TriggerComponentProps) {
             | ClassOptionWithAbilityPriority
             | undefined;
 
+          const nextClassSkillProficiencies = parseSkillProfString(
+            selectedOption?.skill_profs ?? selectedOption?.skillProfs
+          );
+
+          const existingSkillProficiencies = context.draft.proficiencies?.skills ?? [];
+          const nextSkillProficiencies = Array.from(
+            new Set([...existingSkillProficiencies, ...nextClassSkillProficiencies])
+          );
+
           const nextClassContribution = selectedOption
             ? buildClassContribution(
                 selectedOption.ability_priority ??
@@ -202,6 +222,9 @@ export function ClassPicker({ context, onResolve }: TriggerComponentProps) {
                 subclassId: classChanged
                   ? undefined
                   : context.draft.identity?.subclassId,
+              },
+              proficiencies: {
+                skills: nextSkillProficiencies,
               },
               abilityContributions: nextAbilityContributions,
               abilities: computeTotalAbilities(nextAbilityContributions),

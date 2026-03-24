@@ -41,6 +41,13 @@ export function applyPatch(
             : draft.abilityContributions.other,
         }
       : draft.abilityContributions,
+    proficiencies: patch.proficiencies
+      ? {
+          ...draft.proficiencies,
+          ...patch.proficiencies,
+          skills: patch.proficiencies.skills ?? draft.proficiencies.skills,
+        }
+      : draft.proficiencies,
     featSlots: patch.featSlots ?? draft.featSlots,
     featFollowupSelections: patch.featFollowupSelections
       ? {

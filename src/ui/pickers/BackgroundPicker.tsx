@@ -125,6 +125,13 @@ export function BackgroundPicker({ context, onResolve }: TriggerComponentProps) 
 
           const selectedOption = optionsById.get(nextBackgroundId);
 
+          const nextSkillProficiencies = selectedOption?.skillProfs
+            ? selectedOption.skillProfs
+                .split('|')
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0)
+            : [];
+
           const nextBackgroundContribution = selectedOption
             ? buildBackgroundContribution(selectedOption.asiOptions)
             : createZeroAbilities();
@@ -142,6 +149,9 @@ export function BackgroundPicker({ context, onResolve }: TriggerComponentProps) 
             patch: {
               identity: {
                 backgroundId: nextBackgroundId || undefined,
+              },
+              proficiencies: {
+                skills: nextSkillProficiencies,
               },
               abilityContributions: nextAbilityContributions,
               abilities: computeTotalAbilities(nextAbilityContributions),

@@ -6,8 +6,9 @@ import {
   buildFeatAbilityContribution,
   computeTotalAbilities,
 } from '../../builder/abilityContributions';
+import { getCachedWeaponOptions, getWeaponOptions } from '../../data/weapons';
 import { getToolOptions } from '../../data/tools';
-import { getWeaponOptions } from '../../data/weapons';
+import { getCachedFeatRecords, type FeatRecord } from '../../data/feats';
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { buildFeatSlots, resolveFeatPicker } from '../../resolvers/featResolver';
 import {
@@ -21,14 +22,6 @@ import {
   HoverChoiceField,
   type HoverChoiceOption,
 } from '../fields/HoverChoiceField';
-import featsData from '../../../public/data/feats.json';
-
-type FeatRecord = {
-  feat_id: string;
-  name: string;
-  type: string;
-  notes?: string;
-};
 
 function renderFeatDetail(feat: FeatRecord) {
   return (
@@ -66,6 +59,41 @@ function featSlotsEqual(
     const other = safeRight[index];
     return slot.id === other?.id && slot.selectedFeatId === other?.selectedFeatId;
   });
+}
+
+function asStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0);
+  }
+
+  if (typeof value === 'string' && value.length > 0) {
+    return [value];
+  }
+
+  return [];
+}
+
+function addValuesToSet(target: Set<string>, value: unknown) {
+  asStringArray(value).forEach((entry) => target.add(entry));
+}
+
+function isFieldComplete(
+  field: { type: string; maxSelections?: number },
+  value: string | string[] | undefined
+): boolean {
+  if (field.type === 'array') {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+
+    if (field.maxSelections) {
+      return value.length >= field.maxSelections;
+    }
+
+    return value.length > 0;
+  }
+
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
@@ -126,12 +154,87 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
   }, [context.draft.featSlots, generatedSlots, onResolve]);
 
   const featRecordById = useMemo(() => {
-    return new Map((featsData as FeatRecord[]).map((feat) => [feat.feat_id, feat]));
+    return new Map(getCachedFeatRecords().map((feat) => [feat.feat_id, feat]));
   }, []);
 
   const slotMap = useMemo(() => {
     return new Map(generatedSlots.map((slot) => [slot.id, slot]));
   }, [generatedSlots]);
+
+  const takenFeatIdsByOtherSlot = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+
+    generatedSlots.forEach((slot) => {
+      const takenByOthers = new Set(
+        generatedSlots
+          .filter((candidate) => candidate.id !== slot.id)
+          .map((candidate) => candidate.selectedFeatId)
+          .filter((featId): featId is string => typeof featId === 'string' && featId.length > 0)
+      );
+
+      map.set(slot.id, takenByOthers);
+    });
+
+    return map;
+  }, [generatedSlots]);
+
+  const weaponOptionById = useMemo(() => {
+    return new Map(getCachedWeaponOptions().map((weapon) => [weapon.value, weapon]));
+  }, []);
+
+  const aggregatedSkillState = useMemo(() => {
+    const proficiency = new Set<string>();
+    const expertise = new Set<string>();
+
+    addValuesToSet(proficiency, (context.draft as Record<string, unknown>).skillProficiencies);
+    addValuesToSet(expertise, (context.draft as Record<string, unknown>).skillExpertise);
+
+    const proficiencies = (context.draft as Record<string, unknown>).proficiencies;
+    if (proficiencies && typeof proficiencies === 'object') {
+      addValuesToSet(
+        proficiency,
+        (proficiencies as Record<string, unknown>).skills
+      );
+    }
+
+    const expertiseState = (context.draft as Record<string, unknown>).expertise;
+    if (expertiseState && typeof expertiseState === 'object') {
+      addValuesToSet(
+        expertise,
+        (expertiseState as Record<string, unknown>).skills
+      );
+    }
+
+    Object.entries(context.draft.featFollowupSelections ?? {}).forEach(([fieldName, value]) => {
+      const entries = asStringArray(value);
+
+      if (fieldName.endsWith('__skill_training_choices')) {
+        entries.forEach((entry) => {
+          if (proficiency.has(entry) || expertise.has(entry)) {
+            expertise.add(entry);
+          } else {
+            proficiency.add(entry);
+          }
+        });
+        return;
+      }
+
+      if (fieldName.endsWith('__proficiency_choices')) {
+        entries.forEach((entry) => proficiency.add(entry));
+        return;
+      }
+
+      if (fieldName.endsWith('__expertise_choices')) {
+        entries.forEach((entry) => {
+          if (proficiency.has(entry) || expertise.has(entry)) {
+            expertise.add(entry);
+          }
+        });
+      }
+    });
+
+    return { proficiency, expertise };
+  }, [context.draft]);
 
   const followupFieldsBySlot = useMemo(() => {
     if (resolved.status !== 'ready') {
@@ -154,11 +257,54 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
 
       const options = (field.enum ?? []).map((value, index) => {
         const feat = slot ? featRecordById.get(value) : undefined;
+        const isFeatTakenInAnotherSlot = slot
+          ? takenFeatIdsByOtherSlot.get(slot.id)?.has(value) ?? false
+          : false;
+        const weapon = !slot && field.name.endsWith('__weapon_mastery_choices')
+          ? weaponOptionById.get(value)
+          : undefined;
+        const isSkillField =
+          !slot &&
+          (field.name.endsWith('__skill_training_choices') ||
+            field.name.endsWith('__proficiency_choices') ||
+            field.name.endsWith('__expertise_choices'));
+        const isProficiencyChoiceField = !slot && field.name.endsWith('__proficiency_choices');
+        const isExpertiseField = !slot && field.name.endsWith('__expertise_choices');
+        const hasSkillProficiency = aggregatedSkillState.proficiency.has(value);
+        const hasSkillExpertise = aggregatedSkillState.expertise.has(value);
 
         return {
           value,
           label: field.enumNames?.[index] ?? value,
-          detail: feat ? renderFeatDetail(feat) : null,
+          detail: feat
+            ? renderFeatDetail(feat)
+            : weapon
+              ? (
+                  <div>
+                    <div
+                      style={{
+                        fontSize: '1.2rem',
+                        fontWeight: 400,
+                        marginBottom: '14px',
+                        letterSpacing: '0.08em',
+                        lineHeight: 1,
+                        color: '#6e92aa',
+                      }}
+                    >
+                      {weapon.label} ({weapon.masteryTrait})
+                    </div>
+                    <div style={{ lineHeight: 1.5 }}>{weapon.masteryDetails}</div>
+                  </div>
+                )
+              : null,
+          preselected: slot ? isFeatTakenInAnotherSlot : isSkillField ? (hasSkillProficiency || hasSkillExpertise) : false,
+          disabled: slot
+            ? isFeatTakenInAnotherSlot
+            : isExpertiseField
+              ? !hasSkillProficiency && !hasSkillExpertise
+              : isProficiencyChoiceField
+                ? hasSkillProficiency || hasSkillExpertise
+                : false,
         } satisfies HoverChoiceOption;
       });
 
@@ -166,7 +312,7 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
     });
 
     return map;
-  }, [resolved, slotMap, featRecordById]);
+  }, [resolved, slotMap, featRecordById, weaponOptionById, aggregatedSkillState, takenFeatIdsByOtherSlot]);
 
   const followupSummaryBySlot = useMemo(() => {
     if (resolved.status !== 'ready') {
@@ -182,7 +328,36 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
           | undefined,
       getOptions: (fieldName) => fieldOptionsByName.get(fieldName) ?? [],
     });
-  }, [resolved, followupFieldsBySlot, fieldOptionsByName, context.draft.featFollowupSelections]);
+  }, [resolved, followupFieldsBySlot, context.draft.featFollowupSelections]);
+
+  const selectedWeaponBySlot = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof weaponOptionById.get>>();
+
+    followupFieldsBySlot.forEach((fields, slotId) => {
+      const weaponField = fields.find((candidate) =>
+        candidate.name.endsWith('__weapon_mastery_choices')
+      );
+
+      if (!weaponField) {
+        return;
+      }
+
+      const selectedWeaponId = (context.draft.featFollowupSelections ?? {})[
+        weaponField.name
+      ];
+
+      if (typeof selectedWeaponId !== 'string') {
+        return;
+      }
+
+      const weapon = weaponOptionById.get(selectedWeaponId);
+      if (weapon) {
+        map.set(slotId, weapon);
+      }
+    });
+
+    return map;
+  }, [followupFieldsBySlot, context.draft.featFollowupSelections, weaponOptionById]);
 
   if (resolved.status === 'skip') {
     onResolve({ status: 'skip' });
@@ -210,7 +385,15 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
           baseOptions
         );
 
-        if (!slot && fieldSummary) {
+        const fieldComplete = isFieldComplete(
+          {
+            type: field.type,
+            maxSelections: (field as { maxSelections?: number }).maxSelections,
+          },
+          fieldValue as string | string[] | undefined
+        );
+
+        if (!slot && fieldComplete && fieldSummary) {
           return null;
         }
 
@@ -221,14 +404,34 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
                   ? followupSummaryBySlot.get(slot.id)
                   : undefined;
 
+              const selectedWeapon =
+                option.value === slot.selectedFeatId
+                  ? selectedWeaponBySlot.get(slot.id)
+                  : undefined;
+
               return selectionSummary
                 ? {
                     ...option,
                     label: appendSummaryToLabel(option.label, selectionSummary),
-                    detail: renderCompactedSelectionDetail({
-                      baseDetail: option.detail ?? null,
-                      summary: selectionSummary,
-                    }),
+                    detail: selectedWeapon
+                      ? (
+                          <>
+                            {option.detail ?? null}
+                            <div style={{ lineHeight: 1.5, marginTop: '14px' }}>
+                              <span
+                                className="h2"
+                                style={{ marginRight: '8px', color: '#6e92aa' }}
+                              >
+                                {selectedWeapon.masteryTrait}
+                              </span>
+                              <span>{selectedWeapon.masteryDetails}</span>
+                            </div>
+                          </>
+                        )
+                      : renderCompactedSelectionDetail({
+                          baseDetail: option.detail ?? null,
+                          summary: selectionSummary,
+                        }),
                   }
                 : option;
             })
@@ -328,6 +531,7 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
             }}
             multiple={multiple}
             maxSelections={(field as { maxSelections?: number }).maxSelections}
+            showDualClosedTicks={field.name.endsWith('__expertise_choices')}
             placeholder={`Choose ${field.title.toLowerCase()}`}
             instructionText={`— Choose ${field.title.toLowerCase()} —`}
             emptyDetail={null}

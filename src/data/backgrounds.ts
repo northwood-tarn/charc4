@@ -42,6 +42,13 @@ function parseCsvRow(row: string): string[] {
   return result;
 }
 
+function normalizeSkillId(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
 function parseCsv(text: string): BackgroundOption[] {
   const lines = text
     .split('\n')
@@ -80,7 +87,14 @@ function parseCsv(text: string): BackgroundOption[] {
     const name = cols[nameIndex];
     const feat = cols[featIndex];
     const asiOptions = cols[asiOptionsIndex];
-    const skillProfs = cols[skillProfsIndex];
+    const rawSkillProfs = cols[skillProfsIndex];
+    const skillProfs = rawSkillProfs
+      ? rawSkillProfs
+          .split('|')
+          .map((entry) => normalizeSkillId(entry.trim()))
+          .filter((entry) => entry.length > 0)
+          .join('|')
+      : '';
     const toolProf = cols[toolProfIndex];
 
     if (!id || !name) continue;

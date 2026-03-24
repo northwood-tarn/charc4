@@ -266,6 +266,14 @@
     "min_level": 4,
     "requirements": {},
     "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["str", "dex"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
       "weapon_mastery_choices": {
         "count": 1,
         "pool": "weapons",

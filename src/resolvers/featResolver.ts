@@ -1,4 +1,4 @@
-import featsData from '../../public/data/feats.json';
+import { getCachedFeatRecords } from '../data/feats';
 
 import { getCachedSkillOptions } from '../data/skills';
 import { getCachedToolOptions } from '../data/tools';
@@ -99,7 +99,7 @@ function getFeatById(id?: string): FeatRecord | undefined {
     return undefined;
   }
 
-  return (featsData as FeatRecord[]).find((feat) => feat.feat_id === id);
+  return getCachedFeatRecords().find((feat) => feat.feat_id === id);
 }
 function asStringArray(value: string | string[] | undefined): string[] {
   if (Array.isArray(value)) {
@@ -384,7 +384,9 @@ function buildWeaponMasteryChoiceField(
       title: 'Weapon Mastery',
       type: effect.count > 1 ? 'array' : 'string',
       enum: weaponOptions.map((weapon) => weapon.value),
-      enumNames: weaponOptions.map((weapon) => weapon.label),
+      enumNames: weaponOptions.map(
+        (weapon) => `${weapon.label} (${weapon.masteryTrait})`
+      ),
       required: true,
       widget: 'hoverChoice',
     },
@@ -499,7 +501,7 @@ export function resolveFeatSpellGrants(draft: CharacterDraft): ResolvedFeatSpell
 const LEVEL_FEAT_LEVELS = [4, 8, 12, 16, 19] as const;
 
 function getFeatPoolOptions(slot: FeatSlot): FeatRecord[] {
-  const allFeats = featsData as FeatRecord[];
+  const allFeats = getCachedFeatRecords();
 
   if (slot.kind === 'origin') {
     return allFeats
