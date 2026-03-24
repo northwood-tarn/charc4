@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { applyPatch } from '../../engine/applyPatch';
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
-import { useCharacterStore } from '../../store/characterStore';
 import { getSpeciesOptions, type SpeciesOption } from '../../data/species';
 import {
   getLineageOptionsForSpecies,
@@ -117,9 +115,7 @@ function speciesHasMeaningfulLineageChoices(lineages: LineageOption[]): boolean 
 export function SpeciesPicker({ context, onResolve }: TriggerComponentProps) {
   const currentSpeciesId = context.draft.identity.speciesId;
   const currentLineageId = context.draft.identity.lineageId;
-  const currentLanguageId = (context.draft.identity as any).languageId as
-    | string
-    | undefined;
+  const currentLanguageId = context.draft.identity.languageId;
 
   const [pendingSpeciesId, setPendingSpeciesId] = useState(currentSpeciesId ?? '');
   const [pendingLineageId, setPendingLineageId] = useState(currentLineageId ?? '');
@@ -310,14 +306,16 @@ export function SpeciesPicker({ context, onResolve }: TriggerComponentProps) {
             setPendingLineageId('');
           }
 
-          useCharacterStore.setState((state) => ({
-            draft: applyPatch(state.draft, {
+          onResolve({
+            status: 'complete',
+            patch: {
               identity: {
                 speciesId: nextSpeciesId || undefined,
-                lineageId: speciesChanged ? undefined : state.draft.identity?.lineageId,
+                lineageId: speciesChanged ? undefined : context.draft.identity?.lineageId,
               },
-            }),
-          }));
+            },
+            stayOnNode: true,
+          });
         }}
         onHoverDetail={(detail) => {
           context.setHoverDetail?.(detail ?? null);
@@ -338,13 +336,15 @@ export function SpeciesPicker({ context, onResolve }: TriggerComponentProps) {
             const nextLineageId = Array.isArray(value) ? value[0] ?? '' : value;
             setPendingLineageId(nextLineageId);
 
-            useCharacterStore.setState((state) => ({
-              draft: applyPatch(state.draft, {
+            onResolve({
+              status: 'complete',
+              patch: {
                 identity: {
                   lineageId: nextLineageId || undefined,
                 },
-              }),
-            }));
+              },
+              stayOnNode: true,
+            });
           }}
           onHoverDetail={(detail) => {
             context.setHoverDetail?.(detail ?? null);
@@ -366,13 +366,15 @@ export function SpeciesPicker({ context, onResolve }: TriggerComponentProps) {
             const nextLanguageId = Array.isArray(value) ? value[0] ?? '' : value;
             setPendingLanguageId(nextLanguageId);
 
-            useCharacterStore.setState((state) => ({
-              draft: applyPatch(state.draft, {
+            onResolve({
+              status: 'complete',
+              patch: {
                 identity: {
                   languageId: nextLanguageId || undefined,
                 },
-              } as any),
-            }));
+              },
+              stayOnNode: true,
+            });
           }}
           onHoverDetail={(detail) => {
             context.setHoverDetail?.(detail ?? null);

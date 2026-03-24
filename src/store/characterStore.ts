@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import type { CharacterDraft } from '../engine/types';
+import { createZeroAbilities } from '../builder/abilityContributions';
 
 type CharacterStore = {
   draft: CharacterDraft;
@@ -15,6 +16,12 @@ export const useCharacterStore = create<CharacterStore>()(
     (set) => ({
       draft: {
         identity: {},
+        abilities: createZeroAbilities(),
+        abilityContributions: {
+          background: createZeroAbilities(),
+          class: createZeroAbilities(),
+          other: createZeroAbilities(),
+        },
       },
       setDraft: (draft) => set({ draft }),
       setClassId: (classId) =>

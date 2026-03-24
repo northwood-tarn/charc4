@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { useCharacterStore } from '../../store/characterStore';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { getClassOptions, type ClassOption } from '../../data/classes';
@@ -15,6 +14,11 @@ import {
   computeTotalAbilities,
   createZeroAbilities,
 } from '../../builder/abilityContributions';
+
+type ClassOptionWithAbilityPriority = ClassOption & {
+  ability_priority?: string;
+  abilityPriority?: string;
+};
 
 function getOptionDescription(option: { description?: string } | null | undefined): string {
   return option?.description ?? '';
@@ -170,41 +174,39 @@ export function ClassPicker({ context, onResolve }: TriggerComponentProps) {
             setPendingSubclassId('');
           }
 
-          useCharacterStore.setState((state) => {
-            const selectedOption = classOptionsById.get(nextClassId);
+          const selectedOption = classOptionsById.get(nextClassId) as
+            | ClassOptionWithAbilityPriority
+            | undefined;
 
-            const nextClassContribution = selectedOption
-              ? buildClassContribution((selectedOption as any).ability_priority ?? (selectedOption as any).abilityPriority ?? '')
-              : createZeroAbilities();
+          const nextClassContribution = selectedOption
+            ? buildClassContribution(
+                selectedOption.ability_priority ??
+                  selectedOption.abilityPriority ??
+                  ''
+              )
+            : createZeroAbilities();
 
-            const existingContributions = (state.draft as typeof state.draft & {
-              abilityContributions?: {
-                background?: ReturnType<typeof createZeroAbilities>;
-                class?: ReturnType<typeof createZeroAbilities>;
-                other?: ReturnType<typeof createZeroAbilities>;
-              };
-            }).abilityContributions;
+          const existingContributions = context.draft.abilityContributions;
 
-            const nextAbilityContributions = {
-              background: existingContributions?.background ?? createZeroAbilities(),
-              class: nextClassContribution,
-              other: existingContributions?.other ?? createZeroAbilities(),
-            };
+          const nextAbilityContributions = {
+            background: existingContributions.background,
+            class: nextClassContribution,
+            other: existingContributions.other,
+          };
 
-            return {
-              draft: {
-                ...state.draft,
-                identity: {
-                  ...state.draft.identity,
-                  classId: nextClassId || undefined,
-                  subclassId: classChanged
-                    ? undefined
-                    : state.draft.identity?.subclassId,
-                },
-                abilityContributions: nextAbilityContributions,
-                abilities: computeTotalAbilities(nextAbilityContributions),
+          onResolve({
+            status: 'complete',
+            patch: {
+              identity: {
+                classId: nextClassId || undefined,
+                subclassId: classChanged
+                  ? undefined
+                  : context.draft.identity?.subclassId,
               },
-            };
+              abilityContributions: nextAbilityContributions,
+              abilities: computeTotalAbilities(nextAbilityContributions),
+            },
+            stayOnNode: true,
           });
         }}
         onHoverDetail={(detail) => {
@@ -225,15 +227,15 @@ export function ClassPicker({ context, onResolve }: TriggerComponentProps) {
             const nextSubclassId = Array.isArray(value) ? value[0] ?? '' : value;
             setPendingSubclassId(nextSubclassId);
 
-            useCharacterStore.setState((state) => ({
-              draft: {
-                ...state.draft,
+            onResolve({
+              status: 'complete',
+              patch: {
                 identity: {
-                  ...state.draft.identity,
                   subclassId: nextSubclassId || undefined,
                 },
               },
-            }));
+              stayOnNode: true,
+            });
           }}
           onHoverDetail={(detail) => {
             context.setHoverDetail?.(detail ?? null);
@@ -263,15 +265,15 @@ export function ClassPicker({ context, onResolve }: TriggerComponentProps) {
           const nextLevel = Array.isArray(value) ? value[0] ?? '1' : value;
           setPendingLevel(nextLevel);
 
-          useCharacterStore.setState((state) => ({
-            draft: {
-              ...state.draft,
+          onResolve({
+            status: 'complete',
+            patch: {
               identity: {
-                ...state.draft.identity,
                 level: Number(nextLevel) || 1,
               },
             },
-          }));
+            stayOnNode: true,
+          });
         }}
         onHoverDetail={(detail) => {
           context.setHoverDetail?.(detail ?? null);

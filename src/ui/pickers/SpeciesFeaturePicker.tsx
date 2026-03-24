@@ -1,9 +1,11 @@
-import Form from '@rjsf/core';
-import validator from '@rjsf/validator-ajv8';
+import { useMemo } from 'react';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { resolveSpeciesFeaturePicker } from '../../resolvers/speciesFeatureResolver';
-import { buildSchemaFromFields } from '../../schema/schemaBuilder';
+import {
+  HoverChoiceField,
+  type HoverChoiceOption,
+} from '../fields/HoverChoiceField';
 
 export function SpeciesFeaturePicker({ context, onResolve }: TriggerComponentProps) {
   const currentSpeciesFeatureId = context.draft.identity.speciesFeatureId;
@@ -14,26 +16,45 @@ export function SpeciesFeaturePicker({ context, onResolve }: TriggerComponentPro
     return null;
   }
 
-  const { schema, uiSchema } = buildSchemaFromFields(resolved.fields);
+  const field = resolved.fields[0];
+
+  if (!field || !field.enum || !field.enum.length) {
+    onResolve({ status: 'skip' });
+    return null;
+  }
+
+  const options = useMemo<HoverChoiceOption[]>(() => {
+    return field.enum.map((value, index) => ({
+      value,
+      label: field.enumNames?.[index] ?? value,
+    }));
+  }, [field]);
 
   return (
-    <Form
-      schema={schema}
-      uiSchema={uiSchema}
-      validator={validator}
-      formData={{ speciesFeatureId: currentSpeciesFeatureId ?? '' }}
-      onSubmit={({ formData }) => {
-        const speciesFeatureId = String(formData.speciesFeatureId);
+    <HoverChoiceField
+      label={field.label}
+      options={options}
+      value={currentSpeciesFeatureId ?? ''}
+      onChange={(value) => {
+        const speciesFeatureId = Array.isArray(value) ? value[0] ?? '' : value;
 
         onResolve({
           status: 'complete',
           patch: {
             identity: {
-              speciesFeatureId,
+              speciesFeatureId: speciesFeatureId || undefined,
             },
           },
+          stayOnNode: true,
         });
       }}
+      onHoverDetail={(detail) => {
+        context.setHoverDetail?.(detail ?? null);
+      }}
+      multiple={false}
+      placeholder="Choose a species feature"
+      instructionText="— Choose a species feature —"
+      emptyDetail={null}
     />
   );
 }

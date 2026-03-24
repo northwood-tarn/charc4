@@ -1,9 +1,11 @@
-import Form from '@rjsf/core';
-import validator from '@rjsf/validator-ajv8';
+import { useMemo } from 'react';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { resolveClassFeaturePicker } from '../../resolvers/classFeatureResolver';
-import { buildSchemaFromFields } from '../../schema/schemaBuilder';
+import {
+  HoverChoiceField,
+  type HoverChoiceOption,
+} from '../fields/HoverChoiceField';
 
 export function ClassFeaturePicker({ context, onResolve }: TriggerComponentProps) {
   const currentClassFeatureId = context.draft.identity.classFeatureId;
@@ -14,26 +16,45 @@ export function ClassFeaturePicker({ context, onResolve }: TriggerComponentProps
     return null;
   }
 
-  const { schema, uiSchema } = buildSchemaFromFields(resolved.fields);
+  const field = resolved.fields[0];
+
+  if (!field || !field.enum || !field.enum.length) {
+    onResolve({ status: 'skip' });
+    return null;
+  }
+
+  const options = useMemo<HoverChoiceOption[]>(() => {
+    return field.enum.map((value, index) => ({
+      value,
+      label: field.enumNames?.[index] ?? value,
+    }));
+  }, [field]);
 
   return (
-    <Form
-      schema={schema}
-      uiSchema={uiSchema}
-      validator={validator}
-      formData={{ classFeatureId: currentClassFeatureId ?? '' }}
-      onSubmit={({ formData }) => {
-        const classFeatureId = String(formData.classFeatureId);
+    <HoverChoiceField
+      label={field.label}
+      options={options}
+      value={currentClassFeatureId ?? ''}
+      onChange={(value) => {
+        const classFeatureId = Array.isArray(value) ? value[0] ?? '' : value;
 
         onResolve({
           status: 'complete',
           patch: {
             identity: {
-              classFeatureId,
+              classFeatureId: classFeatureId || undefined,
             },
           },
+          stayOnNode: true,
         });
       }}
+      onHoverDetail={(detail) => {
+        context.setHoverDetail?.(detail ?? null);
+      }}
+      multiple={false}
+      placeholder="Choose a class feature"
+      instructionText="— Choose a class feature —"
+      emptyDetail={null}
     />
   );
 }

@@ -50,6 +50,8 @@ export function HoverChoiceField({
 }: HoverChoiceFieldProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const previousSelectedValuesRef = useRef<string[]>([]);
+  const wasOpenRef = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
@@ -95,11 +97,26 @@ export function HoverChoiceField({
   }, []);
 
   useEffect(() => {
-    if (!isOpen) return;
+    const justOpened = isOpen && !wasOpenRef.current;
 
-    const firstEnabledIndex = options.findIndex((option) => !option.disabled);
-    setHighlightedIndex(firstEnabledIndex === -1 ? 0 : firstEnabledIndex);
-  }, [isOpen, options]);
+    if (justOpened) {
+      const selectedIndex = options.findIndex(
+        (option) => !option.disabled && selectedValues.includes(option.value)
+      );
+      const firstEnabledIndex = options.findIndex((option) => !option.disabled);
+      const nextHighlightedIndex =
+        selectedIndex !== -1
+          ? selectedIndex
+          : firstEnabledIndex === -1
+            ? 0
+            : firstEnabledIndex;
+
+      setHighlightedIndex(nextHighlightedIndex);
+    }
+
+    wasOpenRef.current = isOpen;
+  }, [isOpen, options, selectedValues]);
+
 
   useEffect(() => {
     if (!isOpen || !listRef.current) return;
@@ -109,6 +126,24 @@ export function HoverChoiceField({
     );
     active?.scrollIntoView({ block: 'nearest' });
   }, [highlightedIndex, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || multiple) {
+      previousSelectedValuesRef.current = selectedValues;
+      return;
+    }
+
+    const previousSelectedValues = previousSelectedValuesRef.current;
+    const selectionChanged =
+      previousSelectedValues.length !== selectedValues.length ||
+      previousSelectedValues.some((value, index) => value !== selectedValues[index]);
+
+    if (selectionChanged && selectedValues.length) {
+      setIsOpen(false);
+    }
+
+    previousSelectedValuesRef.current = selectedValues;
+  }, [isOpen, multiple, selectedValues]);
 
   function emitDetail(detail: ReactNode | null | undefined) {
     onHoverDetail?.(detail ?? null);
@@ -210,10 +245,23 @@ export function HoverChoiceField({
       ref={rootRef}
       style={{
         position: 'relative',
-        width: '340px',
+        width: '391px',
         maxWidth: '100%',
       }}
-      onMouseLeave={() => emitDetail(emptyDetail)}
+      onMouseEnter={() => {
+        if (!selectedOptions.length) {
+          emitDetail(emptyDetail);
+          return;
+        }
+
+        if (!multiple && selectedOptions[0]) {
+          emitOptionDetail(selectedOptions[0]);
+          return;
+        }
+
+        emitDetail(emptyDetail);
+      }}
+      onMouseLeave={() => emitDetail(null)}
     >
       <button
         type="button"
@@ -223,16 +271,6 @@ export function HoverChoiceField({
           setIsOpen((current) => !current);
         }}
         onKeyDown={handleControlKeyDown}
-        onMouseEnter={() => {
-          if (!selectedOptions.length) {
-            emitDetail(emptyDetail);
-            return;
-          }
-
-          if (!multiple && selectedOptions[0]) {
-            emitOptionDetail(selectedOptions[0]);
-          }
-        }}
         style={{
           width: '100%',
           minHeight: '48px',
@@ -272,19 +310,33 @@ export function HoverChoiceField({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
+                minWidth: 0,
+                flex: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               {showDualClosedTicks && selectedOptions[0]?.preselected && (
                 <>
-                  <span aria-hidden="true" style={{ color: 'rgba(58, 52, 48, 0.96)', fontWeight: 700 }}>
+                  <span aria-hidden="true" style={{ color: 'rgba(58, 52, 48, 0.96)', fontWeight: 700, flex: '0 0 auto' }}>
                     ✓
                   </span>
-                  <span aria-hidden="true" style={{ color: '#6e92aa', fontWeight: 700 }}>
+                  <span aria-hidden="true" style={{ color: '#6e92aa', fontWeight: 700, flex: '0 0 auto' }}>
                     ✓
                   </span>
                 </>
               )}
-              {closedValueText}
+              <span
+                style={{
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {closedValueText}
+              </span>
             </span>
           )}
           {multiple && !selectedOptions.length && (

@@ -4,7 +4,12 @@ import type { TriggerName } from './triggerNames';
 import type { DomainPatch } from './domainPatch';
 
 export type TriggerResult =
-  | { status: 'complete'; patch?: DomainPatch; nextNodeId?: string }
+  | {
+      status: 'complete';
+      patch?: DomainPatch;
+      nextNodeId?: string;
+      stayOnNode?: boolean;
+    }
   | { status: 'skip' }
   | { status: 'error'; message: string };
 

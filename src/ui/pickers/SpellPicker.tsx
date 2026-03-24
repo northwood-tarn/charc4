@@ -1,9 +1,11 @@
-import Form from '@rjsf/core';
-import validator from '@rjsf/validator-ajv8';
+import { useMemo } from 'react';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { resolveSpellPicker } from '../../resolvers/spellResolver';
-import { buildSchemaFromFields } from '../../schema/schemaBuilder';
+import {
+  HoverChoiceField,
+  type HoverChoiceOption,
+} from '../fields/HoverChoiceField';
 
 export function SpellPicker({ context, onResolve }: TriggerComponentProps) {
   const currentSpellId = context.draft.identity.spellId;
@@ -14,26 +16,45 @@ export function SpellPicker({ context, onResolve }: TriggerComponentProps) {
     return null;
   }
 
-  const { schema, uiSchema } = buildSchemaFromFields(resolved.fields);
+  const field = resolved.fields[0];
+
+  if (!field || !field.enum || !field.enum.length) {
+    onResolve({ status: 'skip' });
+    return null;
+  }
+
+  const options = useMemo<HoverChoiceOption[]>(() => {
+    return field.enum.map((value, index) => ({
+      value,
+      label: field.enumNames?.[index] ?? value,
+    }));
+  }, [field]);
 
   return (
-    <Form
-      schema={schema}
-      uiSchema={uiSchema}
-      validator={validator}
-      formData={{ spellId: currentSpellId ?? '' }}
-      onSubmit={({ formData }) => {
-        const spellId = String(formData.spellId);
+    <HoverChoiceField
+      label={field.label}
+      options={options}
+      value={currentSpellId ?? ''}
+      onChange={(value) => {
+        const spellId = Array.isArray(value) ? value[0] ?? '' : value;
 
         onResolve({
           status: 'complete',
           patch: {
             identity: {
-              spellId,
+              spellId: spellId || undefined,
             },
           },
+          stayOnNode: true,
         });
       }}
+      onHoverDetail={(detail) => {
+        context.setHoverDetail?.(detail ?? null);
+      }}
+      multiple={false}
+      placeholder="Choose a spell"
+      instructionText="— Choose a spell —"
+      emptyDetail={null}
     />
   );
 }

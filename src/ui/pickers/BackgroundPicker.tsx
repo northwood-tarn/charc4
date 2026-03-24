@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { useCharacterStore } from '../../store/characterStore';
 
 import {
   buildBackgroundContribution,
@@ -124,38 +123,30 @@ export function BackgroundPicker({ context, onResolve }: TriggerComponentProps) 
           const nextBackgroundId = Array.isArray(value) ? value[0] ?? '' : value;
           setPendingBackgroundId(nextBackgroundId);
 
-          useCharacterStore.setState((state) => {
-            const selectedOption = optionsById.get(nextBackgroundId);
+          const selectedOption = optionsById.get(nextBackgroundId);
 
-            const nextBackgroundContribution = selectedOption
-              ? buildBackgroundContribution(selectedOption.asiOptions)
-              : createZeroAbilities();
+          const nextBackgroundContribution = selectedOption
+            ? buildBackgroundContribution(selectedOption.asiOptions)
+            : createZeroAbilities();
 
-            const existingContributions = (state.draft as typeof state.draft & {
-              abilityContributions?: {
-                background?: ReturnType<typeof createZeroAbilities>;
-                class?: ReturnType<typeof createZeroAbilities>;
-                other?: ReturnType<typeof createZeroAbilities>;
-              };
-            }).abilityContributions;
+          const existingContributions = context.draft.abilityContributions;
 
-            const nextAbilityContributions = {
-              background: nextBackgroundContribution,
-              class: existingContributions?.class ?? createZeroAbilities(),
-              other: existingContributions?.other ?? createZeroAbilities(),
-            };
+          const nextAbilityContributions = {
+            background: nextBackgroundContribution,
+            class: existingContributions.class,
+            other: existingContributions.other,
+          };
 
-            return {
-              draft: {
-                ...state.draft,
-                identity: {
-                  ...state.draft.identity,
-                  backgroundId: nextBackgroundId || undefined,
-                },
-                abilityContributions: nextAbilityContributions,
-                abilities: computeTotalAbilities(nextAbilityContributions),
+          onResolve({
+            status: 'complete',
+            patch: {
+              identity: {
+                backgroundId: nextBackgroundId || undefined,
               },
-            };
+              abilityContributions: nextAbilityContributions,
+              abilities: computeTotalAbilities(nextAbilityContributions),
+            },
+            stayOnNode: true,
           });
         }}
         onHoverDetail={(detail) => {

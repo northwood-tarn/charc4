@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 
-import { applyPatch } from '../../engine/applyPatch';
-import { useCharacterStore } from '../../store/characterStore';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { resolveNamePicker } from '../../resolvers/nameResolver';
@@ -35,13 +33,15 @@ export function NamePicker({ context, onResolve }: TriggerComponentProps) {
       onChange={({ formData }) => {
         const name = String(formData?.name ?? '');
 
-        useCharacterStore.setState((state) => ({
-          draft: applyPatch(state.draft, {
+        onResolve({
+          status: 'complete',
+          patch: {
             identity: {
               name,
             },
-          }),
-        }));
+          },
+          stayOnNode: true,
+        });
       }}
       onKeyDownCapture={(event) => {
         if (event.key !== 'Enter') {

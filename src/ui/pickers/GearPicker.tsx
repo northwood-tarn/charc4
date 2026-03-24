@@ -1,9 +1,11 @@
-import Form from '@rjsf/core';
-import validator from '@rjsf/validator-ajv8';
+import { useMemo } from 'react';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { resolveGearPicker } from '../../resolvers/gearResolver';
-import { buildSchemaFromFields } from '../../schema/schemaBuilder';
+import {
+  HoverChoiceField,
+  type HoverChoiceOption,
+} from '../fields/HoverChoiceField';
 
 export function GearPicker({ context, onResolve }: TriggerComponentProps) {
   const currentGearId = context.draft.identity?.gearId;
@@ -14,26 +16,45 @@ export function GearPicker({ context, onResolve }: TriggerComponentProps) {
     return null;
   }
 
-  const { schema, uiSchema } = buildSchemaFromFields(resolved.fields);
+  const field = resolved.fields[0];
+
+  if (!field || !field.enum || !field.enum.length) {
+    onResolve({ status: 'skip' });
+    return null;
+  }
+
+  const options = useMemo<HoverChoiceOption[]>(() => {
+    return field.enum.map((value, index) => ({
+      value,
+      label: field.enumNames?.[index] ?? value,
+    }));
+  }, [field]);
 
   return (
-    <Form
-      schema={schema}
-      uiSchema={uiSchema}
-      validator={validator}
-      formData={{ gearId: currentGearId ?? '' }}
-      onSubmit={({ formData }) => {
-        const gearId = String(formData.gearId);
+    <HoverChoiceField
+      label={field.label}
+      options={options}
+      value={currentGearId ?? ''}
+      onChange={(value) => {
+        const gearId = Array.isArray(value) ? value[0] ?? '' : value;
 
         onResolve({
           status: 'complete',
           patch: {
             identity: {
-              gearId,
+              gearId: gearId || undefined,
             },
           },
+          stayOnNode: true,
         });
       }}
+      onHoverDetail={(detail) => {
+        context.setHoverDetail?.(detail ?? null);
+      }}
+      multiple={false}
+      placeholder="Choose gear"
+      instructionText="— Choose gear —"
+      emptyDetail={null}
     />
   );
 }

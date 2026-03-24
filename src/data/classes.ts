@@ -5,7 +5,40 @@ export type ClassOption = {
   abilityPriority: string;
 };
 
+
 let cachedOptions: ClassOption[] | null = null;
+
+function parseCsvRow(row: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < row.length; i += 1) {
+    const char = row[i];
+
+    if (char === '"') {
+      const nextChar = row[i + 1];
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  result.push(current);
+  return result;
+}
 
 function parseCsv(text: string): ClassOption[] {
   const lines = text
@@ -15,7 +48,7 @@ function parseCsv(text: string): ClassOption[] {
 
   if (lines.length < 2) return [];
 
-  const header = lines[0].split(',').map((h) => h.trim());
+  const header = parseCsvRow(lines[0]).map((h) => h.trim());
   const idIndex = header.indexOf('id');
   const nameIndex = header.indexOf('name');
   const descriptionIndex = header.indexOf('description');
@@ -33,7 +66,7 @@ function parseCsv(text: string): ClassOption[] {
   const options: ClassOption[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map((c) => c.trim());
+    const cols = parseCsvRow(lines[i]).map((c) => c.trim());
 
     const id = cols[idIndex];
     const name = cols[nameIndex];

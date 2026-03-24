@@ -15,6 +15,10 @@ type BuilderStep = {
 
 type HoverDetail = ReactNode;
 
+type TriggerResolveOptions = {
+  stayOnNode?: boolean;
+};
+
 const BUILDER_STEPS: BuilderStep[] = [
   { id: 'start', label: 'Name' },
   { id: 'after_name', label: 'Background' },
@@ -94,6 +98,7 @@ export function RunnerView() {
 
   const handleTriggerResolve = (result: TriggerResult) => {
     setLastTriggerResult(result);
+    const { stayOnNode = false } = result as TriggerResult & TriggerResolveOptions;
 
     if (result.status === 'error') {
       throw new Error(result.message);
@@ -116,6 +121,10 @@ export function RunnerView() {
       useCharacterStore.setState((state) => ({
         draft: applyPatch(state.draft, result.patch),
       }));
+    }
+
+    if (stayOnNode) {
+      return;
     }
 
     if (result.nextNodeId) {

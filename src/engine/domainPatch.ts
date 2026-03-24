@@ -11,8 +11,10 @@ import type { CharacterDraft } from './types';
  */
 export type DomainPatch = Partial<{
   identity: Partial<CharacterDraft['identity']>;
-  // expand later:
-  // abilities: Partial<CharacterDraft['abilities']>;
-  // proficiencies: Partial<CharacterDraft['proficiencies']>;
-  // choices: ...
+  abilities: Partial<CharacterDraft['abilities']>;
+  abilityContributions: Partial<CharacterDraft['abilityContributions']> & {
+    background?: Partial<CharacterDraft['abilityContributions']['background']>;
+    class?: Partial<CharacterDraft['abilityContributions']['class']>;
+    other?: Partial<CharacterDraft['abilityContributions']['other']>;
+  };
 }>;

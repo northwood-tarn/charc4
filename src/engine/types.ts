@@ -1,3 +1,4 @@
+import type { AbilityBlock, AbilityContributions } from '../builder/abilityContributions';
 import type { TriggerName } from './triggerNames';
 
 export type ScriptNode = {
@@ -7,8 +8,24 @@ export type ScriptNode = {
   next?: string;
 };
 
+export type CharacterIdentity = {
+  name?: string;
+  classId?: string;
+  subclassId?: string;
+  level?: number;
+  backgroundId?: string;
+  speciesId?: string;
+  lineageId?: string;
+  languageId?: string;
+  originFeatId?: string;
+  secondOriginFeatId?: string;
+  originFeatToolChoices?: string[];
+  classFeatureId?: string;
+  speciesFeatureId?: string;
+};
+
 export type CharacterDraft = {
-  identity: {
-    classId?: string;
-  };
+  identity: CharacterIdentity;
+  abilities: AbilityBlock;
+  abilityContributions: AbilityContributions;
 };
