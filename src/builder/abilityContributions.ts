@@ -1,4 +1,4 @@
-
+import type { CharacterDraft } from '../engine/types';
 
 // Central ability contribution system
 // All ability math flows through here
@@ -18,6 +18,30 @@ export type AbilityContributions = {
   class: AbilityBlock;
   other: AbilityBlock; // feats, ASIs, future systems
 };
+
+const ABILITY_ID_TO_KEY: Record<string, AbilityKey> = {
+  str: 'STR',
+  dex: 'DEX',
+  con: 'CON',
+  int: 'INT',
+  wis: 'WIS',
+  cha: 'CHA',
+};
+
+function normalizeAbilitySelection(value: string | string[] | undefined): AbilityKey[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => ABILITY_ID_TO_KEY[String(entry).trim().toLowerCase()])
+      .filter((entry): entry is AbilityKey => Boolean(entry));
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    const mapped = ABILITY_ID_TO_KEY[value.trim().toLowerCase()];
+    return mapped ? [mapped] : [];
+  }
+
+  return [];
+}
 
 // ---------- BASE ----------
 
@@ -67,6 +91,28 @@ export function buildFlatBonusContribution(
 
   (Object.keys(bonuses) as AbilityKey[]).forEach((key) => {
     block[key] = bonuses[key] ?? 0;
+  });
+
+  return block;
+}
+
+export function buildFeatAbilityContribution(
+  draft: Pick<CharacterDraft, 'featFollowupSelections'>
+): AbilityBlock {
+  const block = createZeroAbilities();
+
+  Object.entries(draft.featFollowupSelections).forEach(([fieldName, value]) => {
+    if (
+      !fieldName.endsWith('__ability_score_choices') &&
+      !fieldName.includes('__ability_score_choice_')
+    ) {
+      return;
+    }
+
+    const selectedAbilities = normalizeAbilitySelection(value);
+    selectedAbilities.forEach((ability) => {
+      block[ability] += 1;
+    });
   });
 
   return block;

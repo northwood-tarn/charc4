@@ -22,6 +22,8 @@ export const useCharacterStore = create<CharacterStore>()(
           class: createZeroAbilities(),
           other: createZeroAbilities(),
         },
+        featSlots: [],
+        featFollowupSelections: {},
       },
       setDraft: (draft) => set({ draft }),
       setClassId: (classId) =>

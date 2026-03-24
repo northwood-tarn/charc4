@@ -1,67 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { getSkillOptions } from '../../data/skills';
+import { getSpellOptions } from '../../data/spells';
+import {
+  buildFeatAbilityContribution,
+  computeTotalAbilities,
+} from '../../builder/abilityContributions';
+import { getToolOptions } from '../../data/tools';
+import { getWeaponOptions } from '../../data/weapons';
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
+import { buildFeatSlots, resolveFeatPicker } from '../../resolvers/featResolver';
 import {
   HoverChoiceField,
   type HoverChoiceOption,
 } from '../fields/HoverChoiceField';
 import featsData from '../../../public/data/feats.json';
 
-type ToolChoiceEffect = {
-  count: number;
-  pool: string;
-};
-
-type ToolRecord = {
-  tool_id: string;
-  tool_name: string;
-  tool_type: string;
-};
-
 type FeatRecord = {
   feat_id: string;
   name: string;
   type: string;
   notes?: string;
-  effects?: {
-    tool_choices?: ToolChoiceEffect;
-  };
 };
-
-function parseToolsCsv(csvText: string): ToolRecord[] {
-  const lines = csvText
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-
-  return lines.slice(1).map((line) => {
-    const [tool_id, tool_name, tool_type] = line.split(',');
-    return {
-      tool_id: tool_id?.trim() ?? '',
-      tool_name: tool_name?.trim() ?? '',
-      tool_type: tool_type?.trim() ?? '',
-    };
-  });
-}
-
-function getToolPoolOptions(
-  pool: string,
-  tools: ToolRecord[]
-): HoverChoiceOption[] {
-  if (pool === 'artisan_tools') {
-    return tools
-      .filter((t) => t.tool_type === 'artisans_tools')
-      .map((t) => ({ value: t.tool_id, label: t.tool_name }));
-  }
-
-  if (pool === 'musical_instruments') {
-    return tools
-      .filter((t) => t.tool_type === 'instrument')
-      .map((t) => ({ value: t.tool_id, label: t.tool_name }));
-  }
-
-  return [];
-}
 
 function renderFeatDetail(feat: FeatRecord) {
   return (
@@ -79,48 +39,45 @@ function renderFeatDetail(feat: FeatRecord) {
         {feat.name}
       </div>
 
-      {feat.notes && (
-        <div style={{ lineHeight: 1.5 }}>
-          {feat.notes}
-        </div>
-      )}
+      {feat.notes && <div style={{ lineHeight: 1.5 }}>{feat.notes}</div>}
     </div>
   );
 }
 
-function getFeatById(id?: string): FeatRecord | undefined {
-  return (featsData as FeatRecord[]).find((f) => f.feat_id === id);
+function featSlotsEqual(
+  left: Array<{ id: string; selectedFeatId?: string }> | undefined,
+  right: Array<{ id: string; selectedFeatId?: string }> | undefined
+): boolean {
+  const safeLeft = left ?? [];
+  const safeRight = right ?? [];
+
+  if (safeLeft.length !== safeRight.length) {
+    return false;
+  }
+
+  return safeLeft.every((slot, index) => {
+    const other = safeRight[index];
+    return slot.id === other?.id && slot.selectedFeatId === other?.selectedFeatId;
+  });
 }
 
 export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
-  const draft = context.draft;
-  const identity = draft.identity;
-
-  const [originFeatId, setOriginFeatId] = useState<string | undefined>(
-    identity.originFeatId
-  );
-  const [secondOriginFeatId, setSecondOriginFeatId] = useState<string | undefined>(
-    identity.secondOriginFeatId
-  );
-  const [toolChoices, setToolChoices] = useState<string[]>(
-    identity.originFeatToolChoices ?? []
-  );
-  const [tools, setTools] = useState<ToolRecord[]>([]);
-
-  const speciesId = identity.speciesId;
-  const showSecondOriginFeat = speciesId === 'human';
+  const [supportDataLoaded, setSupportDataLoaded] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    fetch('/data/tools.csv')
-      .then((r) => r.text())
-      .then((csv) => {
-        if (!mounted) return;
-        setTools(parseToolsCsv(csv));
-      })
-      .catch(() => {
-        if (mounted) setTools([]);
+    Promise.all([
+      getToolOptions(),
+      getSkillOptions(),
+      getSpellOptions(),
+      getWeaponOptions(),
+    ])
+      .catch(() => undefined)
+      .finally(() => {
+        if (mounted) {
+          setSupportDataLoaded(true);
+        }
       });
 
     return () => {
@@ -128,148 +85,188 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
     };
   }, []);
 
-  useEffect(() => {
-    setOriginFeatId(identity.originFeatId);
-  }, [identity.originFeatId]);
-
-  useEffect(() => {
-    setToolChoices(identity.originFeatToolChoices ?? []);
-  }, [identity.originFeatToolChoices]);
-
-  const originFeatOptions = useMemo<HoverChoiceOption[]>(() => {
-    return (featsData as FeatRecord[])
-      .filter((feat) => feat.type === 'Origin')
-      .map((feat) => ({
-        value: feat.feat_id,
-        label: feat.name,
-        detail: renderFeatDetail(feat),
-      }));
-  }, []);
-
-  const selectedFeat = useMemo(
-    () => getFeatById(originFeatId),
-    [originFeatId]
+  const resolved = resolveFeatPicker(context.draft);
+  const generatedSlots = useMemo(
+    () => buildFeatSlots(context.draft),
+    [context.draft, supportDataLoaded]
   );
 
-  const toolEffect = selectedFeat?.effects?.tool_choices;
-
-  const toolOptions = useMemo(() => {
-    return toolEffect
-      ? getToolPoolOptions(toolEffect.pool, tools)
-      : [];
-  }, [toolEffect, tools]);
-
   useEffect(() => {
-    setToolChoices([]);
-  }, [originFeatId]);
-
-  useEffect(() => {
-    setSecondOriginFeatId(identity.secondOriginFeatId);
-  }, [identity.secondOriginFeatId]);
-
-  useEffect(() => {
-    if (showSecondOriginFeat) {
+    if (featSlotsEqual(context.draft.featSlots, generatedSlots)) {
       return;
     }
 
-    if (identity.secondOriginFeatId == null && secondOriginFeatId == null) {
-      return;
-    }
+    const nextOtherContribution = buildFeatAbilityContribution({
+      featFollowupSelections: context.draft.featFollowupSelections ?? {},
+    });
 
-    setSecondOriginFeatId(undefined);
+    const nextAbilityContributions = {
+      ...context.draft.abilityContributions,
+      other: nextOtherContribution,
+    };
 
     onResolve({
       status: 'complete',
       patch: {
-        identity: {
-          secondOriginFeatId: undefined,
+        featSlots: generatedSlots,
+        abilityContributions: {
+          other: nextOtherContribution,
         },
+        abilities: computeTotalAbilities(nextAbilityContributions),
       },
       stayOnNode: true,
     });
-  }, [showSecondOriginFeat, identity.secondOriginFeatId, secondOriginFeatId, onResolve]);
+  }, [context.draft.featSlots, generatedSlots, onResolve]);
 
+  const featRecordById = useMemo(() => {
+    return new Map((featsData as FeatRecord[]).map((feat) => [feat.feat_id, feat]));
+  }, []);
+
+  const slotMap = useMemo(() => {
+    return new Map(generatedSlots.map((slot) => [slot.id, slot]));
+  }, [generatedSlots]);
+
+  const fieldOptionsByName = useMemo(() => {
+    const map = new Map<string, HoverChoiceOption[]>();
+
+    if (resolved.status !== 'ready') {
+      return map;
+    }
+
+    resolved.fields.forEach((field) => {
+      const slot = slotMap.get(field.name);
+
+      const options = (field.enum ?? []).map((value, index) => {
+        const feat = slot ? featRecordById.get(value) : undefined;
+
+        return {
+          value,
+          label: field.enumNames?.[index] ?? value,
+          detail: feat ? renderFeatDetail(feat) : null,
+        } satisfies HoverChoiceOption;
+      });
+
+      map.set(field.name, options);
+    });
+
+    return map;
+  }, [resolved, slotMap, featRecordById]);
+
+  if (resolved.status === 'skip') {
+    onResolve({ status: 'skip' });
+    return null;
+  }
 
   return (
-    <div>
-      <HoverChoiceField
-        label="Origin Feat"
-        options={originFeatOptions}
-        value={originFeatId}
-        onChange={(value) => {
-          const next = Array.isArray(value) ? value[0] : value;
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {resolved.fields.map((field) => {
+        const slot = slotMap.get(field.name);
+        const options = fieldOptionsByName.get(field.name) ?? [];
+        const multiple = field.type === 'array';
 
-          setOriginFeatId(next);
+        if (!options.length) {
+          return null;
+        }
 
-          onResolve({
-            status: 'complete',
-            patch: {
-              identity: {
-                originFeatId: next,
-                originFeatToolChoices: undefined,
-              },
-            },
-            stayOnNode: true,
-          });
-        }}
-        onHoverDetail={(d) => context.setHoverDetail?.(d ?? null)}
-        placeholder="Select an origin feat"
-      />
+        const value = slot
+          ? slot.selectedFeatId ?? ''
+          : (context.draft.featFollowupSelections ?? {})[field.name] ?? (multiple ? [] : '');
 
-      {showSecondOriginFeat && (
-        <HoverChoiceField
-          label="Origin Feat (Human)"
-          options={originFeatOptions}
-          value={secondOriginFeatId}
-          onChange={(value) => {
-            const next = Array.isArray(value) ? value[0] : value;
+        return (
+          <HoverChoiceField
+            key={field.name}
+            label={field.title}
+            options={options}
+            value={value}
+            onChange={(nextValue) => {
+              if (slot) {
+                const selectedFeatId = Array.isArray(nextValue)
+                  ? nextValue[0] ?? ''
+                  : nextValue;
 
-            setSecondOriginFeatId(next);
+                const nextFeatSlots = generatedSlots.map((existingSlot) =>
+                  existingSlot.id === slot.id
+                    ? {
+                        ...existingSlot,
+                        selectedFeatId: selectedFeatId || undefined,
+                      }
+                    : existingSlot
+                );
 
-            onResolve({
-              status: 'complete',
-              patch: {
-                identity: {
-                  secondOriginFeatId: next,
+                const nextFollowupSelections = Object.fromEntries(
+                  Object.keys(context.draft.featFollowupSelections ?? {})
+                    .filter((key) => key.startsWith(`${slot.id}__`))
+                    .map((key) => [key, undefined])
+                );
+
+                const mergedFollowupSelections = {
+                  ...(context.draft.featFollowupSelections ?? {}),
+                  ...nextFollowupSelections,
+                };
+
+                const nextOtherContribution = buildFeatAbilityContribution({
+                  featFollowupSelections: mergedFollowupSelections,
+                });
+
+                const nextAbilityContributions = {
+                  ...context.draft.abilityContributions,
+                  other: nextOtherContribution,
+                };
+
+                onResolve({
+                  status: 'complete',
+                  patch: {
+                    featSlots: nextFeatSlots,
+                    featFollowupSelections: nextFollowupSelections,
+                    abilityContributions: {
+                      other: nextOtherContribution,
+                    },
+                    abilities: computeTotalAbilities(nextAbilityContributions),
+                  },
+                  stayOnNode: true,
+                });
+
+                return;
+              }
+
+              const mergedFollowupSelections = {
+                ...(context.draft.featFollowupSelections ?? {}),
+                [field.name]: nextValue,
+              };
+
+              const nextOtherContribution = buildFeatAbilityContribution({
+                featFollowupSelections: mergedFollowupSelections,
+              });
+
+              const nextAbilityContributions = {
+                ...context.draft.abilityContributions,
+                other: nextOtherContribution,
+              };
+
+              onResolve({
+                status: 'complete',
+                patch: {
+                  featFollowupSelections: {
+                    [field.name]: nextValue,
+                  },
+                  abilityContributions: {
+                    other: nextOtherContribution,
+                  },
+                  abilities: computeTotalAbilities(nextAbilityContributions),
                 },
-              },
-              stayOnNode: true,
-            });
-          }}
-          onHoverDetail={(d) => context.setHoverDetail?.(d ?? null)}
-        />
-      )}
-
-      {toolEffect && toolOptions.length > 0 && (
-        <HoverChoiceField
-          label="Tool Proficiencies"
-          options={toolOptions}
-          value={toolChoices}
-          multiple={true}
-          instructionText={`— Choose ${toolEffect.count} —`}
-          onChange={(value) => {
-            const next = Array.isArray(value)
-              ? value.slice(0, toolEffect.count)
-              : value
-              ? [value]
-              : [];
-
-            setToolChoices(next);
-
-            onResolve({
-              status: 'complete',
-              patch: {
-                identity: {
-                  originFeatToolChoices: next,
-                },
-              },
-              stayOnNode: true,
-            });
-          }}
-          onHoverDetail={(d) => context.setHoverDetail?.(d ?? null)}
-          placeholder="Choose tools"
-        />
-      )}
+                stayOnNode: true,
+              });
+            }}
+            onHoverDetail={(detail) => {
+              context.setHoverDetail?.(detail ?? null);
+            }}
+            multiple={multiple}
+            placeholder={`Choose ${field.title.toLowerCase()}`}
+            instructionText={`— Choose ${field.title.toLowerCase()} —`}
+            emptyDetail={null}
+          />
+        );
+      })}
     </div>
   );
 }

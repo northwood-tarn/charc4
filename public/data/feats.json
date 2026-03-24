@@ -43,7 +43,13 @@
     "type": "Origin",
     "min_level": 0,
     "requirements": { "feature": "spellcasting_stub" },
-    "effects": { "uses": { "count": "1" } },
+    "effects": {
+      "uses": { "count": "1" },
+      "spell_grants": [
+        { "kind": "choice", "count": 2, "level": 0 },
+        { "kind": "choice", "count": 1, "level": 1 }
+      ]
+    },
     "notes": "Learn 2 cantrips and 1 1st-level spell; cast the spell once per long rest for free."
   },
   {
@@ -254,7 +260,13 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "weapon_mastery_choices": {
+        "count": 1,
+        "pool": "weapons",
+        "reassignable_after_long_rest": true
+      }
+    },
     "notes": "Gain mastery with a chosen weapon type; change after a long rest."
   },
   {
@@ -263,7 +275,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 2,
+        "count": 2,
+        "options": ["str", "dex", "con", "int", "wis", "cha"],
+        "per_choice_max": 2,
+        "allow_same_choice_twice": true,
+        "score_cap": 20
+      }
+    },
     "notes": "Increase one ability score by 2, or increase two ability scores by 1 each (maximum 20)."
   },
   {
@@ -272,7 +293,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["con", "wis"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Constitution or Wisdom. Gain proficiency with Cook’s Utensils. During a Short or Long Rest, you can cook for allies to grant extra healing, and you can prepare treats that grant Temporary Hit Points equal to your Proficiency Bonus."
   },
   {
@@ -290,7 +320,26 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": { "uses": { "count": "1" } },
+    "effects": {
+      "uses": { "count": "1" },
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
+      "spell_grants": [
+        { "kind": "fixed", "spells": ["misty_step"] },
+        {
+          "kind": "choice",
+          "count": 1,
+          "level": 1,
+          "schools": ["divination", "enchantment"]
+        }
+      ]
+    },
     "notes": "+1 Intelligence, Wisdom, or Charisma. Misty Step and one level 1 Divination or Enchantment spell are always prepared; each can be cast once for free per Long Rest."
   },
   {
@@ -317,7 +366,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": { "ability": "WIS|CHA:13" },
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Wisdom or Charisma. After a Short or Long Rest, you can inspire up to six creatures; each gains Temporary Hit Points equal to your character level plus the modifier of the ability increased by this feat."
   },
   {
@@ -326,7 +384,21 @@
     "type": "General",
     "min_level": 4,
     "requirements": { "ability": "INT:13" },
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
+      "skill_training_choices": {
+        "count": 1,
+        "options": ["arcana", "history", "investigation", "nature", "religion"],
+        "upgrade_if_proficient": true
+      }
+    },
     "notes": "+1 Intelligence. Choose Arcana, History, Investigation, Nature, or Religion; gain proficiency in that skill, or Expertise if already proficient. You can take the Study action as a Bonus Action."
   },
   {
@@ -344,7 +416,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["str", "dex"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Strength or Dexterity. When you damage a concentrating creature, it has Disadvantage on its Concentration save. Once per rest, you can turn a failed Intelligence, Wisdom, or Charisma save into a success."
   },
   {
@@ -353,7 +434,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["str", "dex"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Strength or Dexterity. Gain proficiency with Martial weapons."
   },
   {
@@ -380,7 +470,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["str", "dex", "wis"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Strength, Dexterity, or Wisdom. Gain Advantage on attacks against smaller unmounted creatures, and your mount takes only half damage on failed Dexterity saves from effects that target you while mounted."
   },
   {
@@ -389,7 +488,21 @@
     "type": "General",
     "min_level": 4,
     "requirements": { "ability": "INT|WIS:13" },
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int", "wis"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
+      "skill_training_choices": {
+        "count": 1,
+        "options": ["insight", "investigation", "perception"],
+        "upgrade_if_proficient": true
+      }
+    },
     "notes": "+1 Intelligence or Wisdom. Choose Insight, Investigation, or Perception; gain proficiency in that skill, or Expertise if already proficient. You can take the Search action as a Bonus Action."
   },
   {
@@ -416,7 +529,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["str", "dex", "con", "int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 to one ability score for which you lack saving throw proficiency. Gain saving throw proficiency with that ability."
   },
   {
@@ -425,7 +547,12 @@
     "type": "General",
     "min_level": 4,
     "requirements": { "ability": "INT|WIS|CHA:13", "feature": "spellcasting_stub" },
-    "effects": { "uses": { "count": "1" } },
+    "effects": {
+      "uses": { "count": "1" },
+      "spell_grants": [
+        { "kind": "choice", "count": "PB", "level": 1, "ritual_only": true }
+      ]
+    },
     "notes": "+1 Intelligence, Wisdom, or Charisma. A number of level 1 Ritual spells equal to your Proficiency Bonus are always prepared. You can cast one prepared Ritual quickly for free once per Long Rest."
   },
   {
@@ -434,7 +561,26 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": { "uses": { "count": "1" } },
+    "effects": {
+      "uses": { "count": "1" },
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
+      "spell_grants": [
+        { "kind": "fixed", "spells": ["invisibility"] },
+        {
+          "kind": "choice",
+          "count": 1,
+          "level": 1,
+          "schools": ["illusion", "necromancy"]
+        }
+      ]
+    },
     "notes": "+1 Intelligence, Wisdom, or Charisma. Invisibility and one level 1 Illusion or Necromancy spell are always prepared; each can be cast once for free per Long Rest."
   },
   {
@@ -452,7 +598,18 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["str", "dex", "con", "int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
+      "proficiency_choices": { "count": 1, "pools": ["skills"] },
+      "expertise_choices": { "count": 1, "pools": ["skills"], "require_proficiency": true }
+    },
     "notes": "+1 to one ability score. Gain proficiency in one skill, and gain Expertise in one skill in which you are already proficient."
   },
   {
@@ -461,7 +618,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": { "feature": "spellcasting_stub" },
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Intelligence, Wisdom, or Charisma. Spell attacks ignore Cover, suffer no Disadvantage in melee, and attack spell range increases by 60 feet when the spell's range is at least 10 feet."
   },
   {
@@ -470,7 +636,16 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      }
+    },
     "notes": "+1 Intelligence, Wisdom, or Charisma. You learn Mage Hand with increased range and invisibility, and as a Bonus Action you can try to shove a target 5 feet with telekinetic force."
   },
   {
@@ -479,7 +654,20 @@
     "type": "General",
     "min_level": 4,
     "requirements": {},
-    "effects": { "uses": { "count": "1" } },
+    "effects": {
+      "uses": { "count": "1" },
+      "ability_score_choices": {
+        "points": 1,
+        "count": 1,
+        "options": ["int", "wis", "cha"],
+        "per_choice_max": 1,
+        "allow_same_choice_twice": false,
+        "score_cap": 20
+      },
+      "spell_grants": [
+        { "kind": "fixed", "spells": ["detect_thoughts"] }
+      ]
+    },
     "notes": "+1 Intelligence, Wisdom, or Charisma. You can speak telepathically to one creature within 60 feet that shares a language with you. Detect Thoughts is prepared, and you can cast it once for free per Long Rest."
   },
   {

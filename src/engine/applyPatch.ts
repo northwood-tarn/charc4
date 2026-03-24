@@ -41,5 +41,12 @@ export function applyPatch(
             : draft.abilityContributions.other,
         }
       : draft.abilityContributions,
+    featSlots: patch.featSlots ?? draft.featSlots,
+    featFollowupSelections: patch.featFollowupSelections
+      ? {
+          ...draft.featFollowupSelections,
+          ...patch.featFollowupSelections,
+        }
+      : draft.featFollowupSelections,
   };
 }

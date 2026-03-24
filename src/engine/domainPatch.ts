@@ -17,4 +17,6 @@ export type DomainPatch = Partial<{
     class?: Partial<CharacterDraft['abilityContributions']['class']>;
     other?: Partial<CharacterDraft['abilityContributions']['other']>;
   };
+  featSlots: CharacterDraft['featSlots'];
+  featFollowupSelections: CharacterDraft['featFollowupSelections'];
 }>;

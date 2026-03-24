@@ -8,6 +8,29 @@ export type ScriptNode = {
   next?: string;
 };
 
+export type FeatSlotKind = 'origin' | 'general';
+
+export type FeatPool = 'origin' | 'general';
+
+export type FeatSlotSource =
+  | 'base_origin'
+  | 'human_origin_bonus'
+  | 'level_progression';
+
+export type FeatSlot = {
+  id: string;
+  label: string;
+  kind: FeatSlotKind;
+  levelGranted: number;
+  featPool: FeatPool;
+  source: FeatSlotSource;
+  selectedFeatId?: string;
+};
+
+export type FeatFollowupSelectionValue = string | string[];
+
+export type FeatFollowupSelections = Record<string, FeatFollowupSelectionValue | undefined>;
+
 export type CharacterIdentity = {
   name?: string;
   classId?: string;
@@ -17,9 +40,6 @@ export type CharacterIdentity = {
   speciesId?: string;
   lineageId?: string;
   languageId?: string;
-  originFeatId?: string;
-  secondOriginFeatId?: string;
-  originFeatToolChoices?: string[];
   classFeatureId?: string;
   speciesFeatureId?: string;
 };
@@ -28,4 +48,6 @@ export type CharacterDraft = {
   identity: CharacterIdentity;
   abilities: AbilityBlock;
   abilityContributions: AbilityContributions;
+  featSlots: FeatSlot[];
+  featFollowupSelections: FeatFollowupSelections;
 };
