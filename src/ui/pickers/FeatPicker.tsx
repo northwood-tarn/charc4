@@ -11,6 +11,13 @@ import { getWeaponOptions } from '../../data/weapons';
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { buildFeatSlots, resolveFeatPicker } from '../../resolvers/featResolver';
 import {
+  appendSummaryToLabel,
+  buildFollowupSummaryByParent,
+  getFieldSelectionSummary,
+  groupFollowupFieldsByParent,
+  renderCompactedSelectionDetail,
+} from './pickerCompaction';
+import {
   HoverChoiceField,
   type HoverChoiceOption,
 } from '../fields/HoverChoiceField';
@@ -126,6 +133,15 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
     return new Map(generatedSlots.map((slot) => [slot.id, slot]));
   }, [generatedSlots]);
 
+  const followupFieldsBySlot = useMemo(() => {
+    if (resolved.status !== 'ready') {
+      return new Map<string, typeof resolved.fields>();
+    }
+
+    return groupFollowupFieldsByParent(resolved.fields);
+  }, [resolved]);
+
+
   const fieldOptionsByName = useMemo(() => {
     const map = new Map<string, HoverChoiceOption[]>();
 
@@ -152,6 +168,22 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
     return map;
   }, [resolved, slotMap, featRecordById]);
 
+  const followupSummaryBySlot = useMemo(() => {
+    if (resolved.status !== 'ready') {
+      return new Map<string, string>();
+    }
+
+    return buildFollowupSummaryByParent({
+      fieldsByParent: followupFieldsBySlot,
+      getValue: (fieldName) =>
+        (context.draft.featFollowupSelections ?? {})[fieldName] as
+          | string
+          | string[]
+          | undefined,
+      getOptions: (fieldName) => fieldOptionsByName.get(fieldName) ?? [],
+    });
+  }, [resolved, followupFieldsBySlot, fieldOptionsByName, context.draft.featFollowupSelections]);
+
   if (resolved.status === 'skip') {
     onResolve({ status: 'skip' });
     return null;
@@ -161,23 +193,57 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {resolved.fields.map((field) => {
         const slot = slotMap.get(field.name);
-        const options = fieldOptionsByName.get(field.name) ?? [];
+        const baseOptions = fieldOptionsByName.get(field.name) ?? [];
         const multiple = field.type === 'array';
+
+        const fieldValue = slot
+          ? slot.selectedFeatId ?? ''
+          : (context.draft.featFollowupSelections ?? {})[field.name] ?? (multiple ? [] : '');
+
+        const fieldSummary = getFieldSelectionSummary(
+          {
+            name: field.name,
+            type: field.type,
+            maxSelections: (field as { maxSelections?: number }).maxSelections,
+          },
+          fieldValue as string | string[] | undefined,
+          baseOptions
+        );
+
+        if (!slot && fieldSummary) {
+          return null;
+        }
+
+        const options = slot
+          ? baseOptions.map((option) => {
+              const selectionSummary =
+                option.value === slot.selectedFeatId
+                  ? followupSummaryBySlot.get(slot.id)
+                  : undefined;
+
+              return selectionSummary
+                ? {
+                    ...option,
+                    label: appendSummaryToLabel(option.label, selectionSummary),
+                    detail: renderCompactedSelectionDetail({
+                      baseDetail: option.detail ?? null,
+                      summary: selectionSummary,
+                    }),
+                  }
+                : option;
+            })
+          : baseOptions;
 
         if (!options.length) {
           return null;
         }
-
-        const value = slot
-          ? slot.selectedFeatId ?? ''
-          : (context.draft.featFollowupSelections ?? {})[field.name] ?? (multiple ? [] : '');
 
         return (
           <HoverChoiceField
             key={field.name}
             label={field.title}
             options={options}
-            value={value}
+            value={fieldValue}
             onChange={(nextValue) => {
               if (slot) {
                 const selectedFeatId = Array.isArray(nextValue)
@@ -261,6 +327,7 @@ export function FeatPicker({ context, onResolve }: TriggerComponentProps) {
               context.setHoverDetail?.(detail ?? null);
             }}
             multiple={multiple}
+            maxSelections={(field as { maxSelections?: number }).maxSelections}
             placeholder={`Choose ${field.title.toLowerCase()}`}
             instructionText={`— Choose ${field.title.toLowerCase()} —`}
             emptyDetail={null}

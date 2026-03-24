@@ -89,7 +89,12 @@
     "type": "Origin",
     "min_level": 0,
     "requirements": {},
-    "effects": {},
+    "effects": {
+      "gear_seed_stub": {
+        "target": "gearResolver",
+        "case": "monk_unarmed_strike_first_row"
+      }
+    },
     "notes": "Unarmed strikes now deal 1d4+strength modifier damage. Reroll any 1's on an unarmed attack. Once per turn, you can push 5ft on an unarmed hit."
   },
   {
@@ -644,7 +649,10 @@
         "per_choice_max": 1,
         "allow_same_choice_twice": false,
         "score_cap": 20
-      }
+      },
+      "spell_grants": [
+        { "kind": "fixed", "spells": ["mage_hand"] }
+      ]
     },
     "notes": "+1 Intelligence, Wisdom, or Charisma. You learn Mage Hand with increased range and invisibility, and as a Bonus Action you can try to shove a target 5 feet with telekinetic force."
   },

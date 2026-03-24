@@ -22,6 +22,7 @@ export type HoverChoiceFieldProps = {
   emptyDetail?: ReactNode | null;
   instructionText?: string;
   showDualClosedTicks?: boolean;
+  maxSelections?: number;
 };
 
 function asArray(value: string | string[] | null | undefined): string[] {
@@ -47,6 +48,7 @@ export function HoverChoiceField({
   emptyDetail = null,
   instructionText,
   showDualClosedTicks = false,
+  maxSelections,
 }: HoverChoiceFieldProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -172,6 +174,12 @@ export function HoverChoiceField({
 
     if (multiple) {
       const exists = selectedValues.includes(option.value);
+
+      if (!exists && maxSelections && selectedValues.length >= maxSelections) {
+        emitOptionDetail(option);
+        return;
+      }
+
       const nextValues = exists
         ? selectedValues.filter((item) => item !== option.value)
         : [...selectedValues, option.value];
@@ -339,45 +347,36 @@ export function HoverChoiceField({
               </span>
             </span>
           )}
-          {multiple && !selectedOptions.length && (
-            <span style={{ color: 'rgba(112, 104, 96, 0.72)' }}>{placeholder}</span>
-          )}
-          {multiple && selectedOptions.map((option) => (
+          {multiple && (
             <span
-              key={option.value}
-              onMouseEnter={(event) => {
-                event.stopPropagation();
-                emitOptionDetail(option);
-              }}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '2px 8px',
-                border: '1px solid rgba(112, 104, 96, 0.30)',
-                background: 'rgba(255, 255, 255, 0.18)',
-                lineHeight: 1.2,
-                gap: '6px',
+                color: selectedLabels.length ? 'inherit' : 'rgba(112, 104, 96, 0.72)',
+                minWidth: 0,
+                flex: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
-              {option.preselected && (
-                showDualClosedTicks ? (
-                  <>
-                    <span aria-hidden="true" style={{ color: 'rgba(58, 52, 48, 0.96)', fontWeight: 700 }}>
-                      ✓
-                    </span>
-                    <span aria-hidden="true" style={{ color: '#6e92aa', fontWeight: 700 }}>
-                      ✓
-                    </span>
-                  </>
-                ) : (
-                  <span aria-hidden="true" style={{ color: 'rgba(58, 52, 48, 0.96)', fontWeight: 700 }}>
-                    ✓
+              {selectedOptions.length ? (
+                selectedOptions.map((option, index) => (
+                  <span
+                    key={option.value}
+                    onMouseEnter={(event) => {
+                      event.stopPropagation();
+                      emitOptionDetail(option);
+                    }}
+                  >
+                    {showDualClosedTicks && option.preselected ? '✓ ✓ ' : option.preselected ? '✓ ' : ''}
+                    {option.label}
+                    {index < selectedOptions.length - 1 ? ', ' : ''}
                   </span>
-                )
+                ))
+              ) : (
+                placeholder
               )}
-              {option.label}
             </span>
-          ))}
+          )}
         </span>
         <span
           aria-hidden="true"
@@ -449,7 +448,7 @@ export function HoverChoiceField({
                   background: highlighted
                     ? 'rgba(110, 146, 170, 0.12)'
                     : 'transparent',
-                  color: option.disabled
+                  color: option.disabled || (!selected && multiple && !!maxSelections && selectedValues.length >= maxSelections)
                     ? 'rgba(82, 76, 69, 0.42)'
                     : 'rgba(58, 52, 48, 0.96)',
                   padding: '11px 14px',
@@ -458,7 +457,9 @@ export function HoverChoiceField({
                   fontSize: '0.96rem',
                   fontWeight: 400,
                   letterSpacing: '0.04em',
-                  cursor: option.disabled ? 'default' : 'pointer',
+                  cursor: option.disabled || (!selected && multiple && !!maxSelections && selectedValues.length >= maxSelections)
+                    ? 'default'
+                    : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',

@@ -84,6 +84,16 @@ export type ResolvedFeatSpellGrant = {
   spellIds: string[];
   fixed: boolean;
 };
+function withMaxSelections(field: ResolvedField, maxSelections?: number): ResolvedField {
+  if (!maxSelections || maxSelections <= 1) {
+    return field;
+  }
+
+  return {
+    ...field,
+    maxSelections,
+  } as ResolvedField;
+}
 function getFeatById(id?: string): FeatRecord | undefined {
   if (!id) {
     return undefined;
@@ -113,15 +123,18 @@ function buildToolChoiceField(slot: FeatSlot, effect: ToolChoiceEffect): Resolve
     filteredOptions = toolOptions.filter((tool) => tool.toolType === 'instrument');
   }
 
-  return {
-    name: `${slot.id}__tool_choices`,
-    title: 'Tool Proficiencies',
-    type: effect.count > 1 ? 'array' : 'string',
-    enum: filteredOptions.map((tool) => tool.value),
-    enumNames: filteredOptions.map((tool) => tool.label),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__tool_choices`,
+      title: 'Tool Proficiencies',
+      type: effect.count > 1 ? 'array' : 'string',
+      enum: filteredOptions.map((tool) => tool.value),
+      enumNames: filteredOptions.map((tool) => tool.label),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    effect.count
+  );
 }
 
 function buildProficiencyChoiceField(
@@ -148,35 +161,41 @@ function buildProficiencyChoiceField(
     );
   }
 
-  return {
-    name: `${slot.id}__proficiency_choices`,
-    title: 'Proficiencies',
-    type: effect.count > 1 ? 'array' : 'string',
-    enum: options.map((option) => option.value),
-    enumNames: options.map((option) => option.label),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__proficiency_choices`,
+      title: 'Proficiencies',
+      type: effect.count > 1 ? 'array' : 'string',
+      enum: options.map((option) => option.value),
+      enumNames: options.map((option) => option.label),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    effect.count
+  );
 }
 
 function buildResistanceChoiceField(
   slot: FeatSlot,
   effect: ResistanceChoiceEffect
 ): ResolvedField {
-  return {
-    name: `${slot.id}__resistance_choice`,
-    title: 'Resistance',
-    type: effect.choice > 1 ? 'array' : 'string',
-    enum: effect.options,
-    enumNames: effect.options.map((option) =>
-      option
-        .split('_')
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ')
-    ),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__resistance_choice`,
+      title: 'Resistance',
+      type: effect.choice > 1 ? 'array' : 'string',
+      enum: effect.options,
+      enumNames: effect.options.map((option) =>
+        option
+          .split('_')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ')
+      ),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    effect.choice
+  );
 }
 
 function normalizeLevels(level: number | number[] | undefined): number[] {
@@ -231,15 +250,18 @@ function buildSpellGrantChoiceField(
     })
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  return {
-    name: `${slot.id}__spell_grant_${index}`,
-    title: 'Spells',
-    type: grant.count === 1 ? 'string' : 'array',
-    enum: spellOptions.map((spell) => spell.value),
-    enumNames: spellOptions.map((spell) => spell.label),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__spell_grant_${index}`,
+      title: 'Spells',
+      type: grant.count === 1 ? 'string' : 'array',
+      enum: spellOptions.map((spell) => spell.value),
+      enumNames: spellOptions.map((spell) => spell.label),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    typeof grant.count === 'number' ? grant.count : undefined
+  );
 }
 
 function buildAbilityScoreChoiceFields(
@@ -295,15 +317,18 @@ function buildSkillTrainingChoiceField(
     .filter((skill) => effect.options.includes(skill.value))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  return {
-    name: `${slot.id}__skill_training_choices`,
-    title: 'Skill',
-    type: effect.count > 1 ? 'array' : 'string',
-    enum: skillOptions.map((skill) => skill.value),
-    enumNames: skillOptions.map((skill) => skill.label),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__skill_training_choices`,
+      title: 'Skill',
+      type: effect.count > 1 ? 'array' : 'string',
+      enum: skillOptions.map((skill) => skill.value),
+      enumNames: skillOptions.map((skill) => skill.label),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    effect.count
+  );
 }
 
 
@@ -331,15 +356,18 @@ function buildExpertiseChoiceField(
     );
   }
 
-  return {
-    name: `${slot.id}__expertise_choices`,
-    title: 'Expertise',
-    type: effect.count > 1 ? 'array' : 'string',
-    enum: options.map((option) => option.value),
-    enumNames: options.map((option) => option.label),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__expertise_choices`,
+      title: 'Expertise',
+      type: effect.count > 1 ? 'array' : 'string',
+      enum: options.map((option) => option.value),
+      enumNames: options.map((option) => option.label),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    effect.count
+  );
 }
 
 function buildWeaponMasteryChoiceField(
@@ -350,71 +378,72 @@ function buildWeaponMasteryChoiceField(
     ? getCachedWeaponOptions().sort((a, b) => a.label.localeCompare(b.label))
     : [];
 
-  return {
-    name: `${slot.id}__weapon_mastery_choices`,
-    title: 'Weapon Mastery',
-    type: effect.count > 1 ? 'array' : 'string',
-    enum: weaponOptions.map((weapon) => weapon.value),
-    enumNames: weaponOptions.map((weapon) => weapon.label),
-    required: true,
-    widget: 'hoverChoice',
-  };
+  return withMaxSelections(
+    {
+      name: `${slot.id}__weapon_mastery_choices`,
+      title: 'Weapon Mastery',
+      type: effect.count > 1 ? 'array' : 'string',
+      enum: weaponOptions.map((weapon) => weapon.value),
+      enumNames: weaponOptions.map((weapon) => weapon.label),
+      required: true,
+      widget: 'hoverChoice',
+    },
+    effect.count
+  );
 }
 
-function buildFollowupFields(featSlots: FeatSlot[]): ResolvedField[] {
+function buildFollowupFieldsForSlot(slot: FeatSlot): ResolvedField[] {
   const fields: ResolvedField[] = [];
+  const feat = getFeatById(slot.selectedFeatId);
 
-  featSlots.forEach((slot) => {
-    const feat = getFeatById(slot.selectedFeatId);
-    if (!feat?.effects) {
-      return;
-    }
+  if (!feat?.effects) {
+    return fields;
+  }
 
-    if (feat.effects.tool_choices) {
-      fields.push(buildToolChoiceField(slot, feat.effects.tool_choices));
-    }
+  if (feat.effects.tool_choices) {
+    fields.push(buildToolChoiceField(slot, feat.effects.tool_choices));
+  }
 
-    if (feat.effects.proficiency_choices) {
-      fields.push(buildProficiencyChoiceField(slot, feat.effects.proficiency_choices));
-    }
+  if (feat.effects.proficiency_choices) {
+    fields.push(buildProficiencyChoiceField(slot, feat.effects.proficiency_choices));
+  }
 
-    if (feat.effects.resistances) {
-      fields.push(buildResistanceChoiceField(slot, feat.effects.resistances));
-    }
+  if (feat.effects.resistances) {
+    fields.push(buildResistanceChoiceField(slot, feat.effects.resistances));
+  }
 
-    if (feat.effects.spell_grants?.length) {
-      feat.effects.spell_grants.forEach((grant, index) => {
-        const field = buildSpellGrantChoiceField(slot, grant, index);
-        if (field) {
-          fields.push(field);
-        }
-      });
-    }
+  if (feat.effects.spell_grants?.length) {
+    feat.effects.spell_grants.forEach((grant, index) => {
+      const field = buildSpellGrantChoiceField(slot, grant, index);
+      if (field) {
+        fields.push(field);
+      }
+    });
+  }
 
-    if (feat.effects.ability_score_choices) {
-      fields.push(
-        ...buildAbilityScoreChoiceFields(slot, feat.effects.ability_score_choices)
-      );
-    }
+  if (feat.effects.ability_score_choices) {
+    fields.push(
+      ...buildAbilityScoreChoiceFields(slot, feat.effects.ability_score_choices)
+    );
+  }
 
-    if (feat.effects.skill_training_choices) {
-      fields.push(
-        buildSkillTrainingChoiceField(slot, feat.effects.skill_training_choices)
-      );
-    }
+  if (feat.effects.skill_training_choices) {
+    fields.push(
+      buildSkillTrainingChoiceField(slot, feat.effects.skill_training_choices)
+    );
+  }
 
-    if (feat.effects.expertise_choices) {
-      fields.push(
-        buildExpertiseChoiceField(slot, feat.effects.expertise_choices)
-      );
-    }
+  if (feat.effects.expertise_choices) {
+    fields.push(
+      buildExpertiseChoiceField(slot, feat.effects.expertise_choices)
+    );
+  }
 
-    if (feat.effects.weapon_mastery_choices) {
-      fields.push(
-        buildWeaponMasteryChoiceField(slot, feat.effects.weapon_mastery_choices)
-      );
-    }
-  });
+  if (feat.effects.weapon_mastery_choices) {
+    fields.push(
+      buildWeaponMasteryChoiceField(slot, feat.effects.weapon_mastery_choices)
+    );
+  }
 
   return fields;
 }
@@ -584,6 +613,9 @@ export function resolveFeatPicker(draft: CharacterDraft): ResolverOutput {
 
   return {
     status: 'ready',
-    fields: [...featSlots.map(buildFeatSlotField), ...buildFollowupFields(featSlots)],
+    fields: featSlots.flatMap((slot) => [
+      buildFeatSlotField(slot),
+      ...buildFollowupFieldsForSlot(slot),
+    ]),
   };
 }
