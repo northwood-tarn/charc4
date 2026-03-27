@@ -1,10 +1,9 @@
-
-
 export type SkillOption = {
   value: string;
   label: string;
   abilityId: string;
   abilityName: string;
+  description?: string;
 };
 
 let cachedSkillOptions: SkillOption[] | null = null;
@@ -58,6 +57,7 @@ function parseSkills(text: string): SkillOption[] {
   const nameIndex = header.indexOf('skill_name');
   const abilityIdIndex = header.indexOf('ability_id');
   const abilityNameIndex = header.indexOf('ability_name');
+  const descriptionIndex = header.indexOf('description');
 
   if (
     idIndex === -1 ||
@@ -74,10 +74,13 @@ function parseSkills(text: string): SkillOption[] {
     const name = cols[nameIndex]?.trim();
     const abilityId = cols[abilityIdIndex]?.trim();
     const abilityName = cols[abilityNameIndex]?.trim();
+    const description = descriptionIndex >= 0
+      ? cols[descriptionIndex]?.trim() || undefined
+      : undefined;
 
     if (!id || !name || !abilityId || !abilityName) return [];
 
-    return [{ value: id, label: name, abilityId, abilityName }];
+    return [{ value: id, label: name, abilityId, abilityName, description }];
   });
 }
 

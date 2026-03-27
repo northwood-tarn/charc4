@@ -53,6 +53,7 @@ export function HoverChoiceField({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const previousSelectedValuesRef = useRef<string[]>([]);
+  const pointerSelectedValueRef = useRef<string | null>(null);
   const wasOpenRef = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -158,6 +159,11 @@ export function HoverChoiceField({
     }
 
     emitDetail(option.detail ?? null);
+  }
+
+  function highlightOption(index: number, option: HoverChoiceOption | undefined) {
+    setHighlightedIndex(index);
+    emitOptionDetail(option);
   }
 
   function updateValue(nextValues: string[]) {
@@ -426,6 +432,7 @@ export function HoverChoiceField({
                 background: 'rgba(255, 255, 255, 0.22)',
               }}
               onMouseEnter={() => emitDetail(emptyDetail)}
+              onPointerEnter={() => emitDetail(emptyDetail)}
             >
               {instructionText}
             </div>
@@ -443,10 +450,29 @@ export function HoverChoiceField({
                 data-hover-choice-index={index}
                 disabled={option.disabled}
                 onMouseEnter={() => {
-                  setHighlightedIndex(index);
-                  emitOptionDetail(option);
+                  highlightOption(index, option);
                 }}
-                onClick={() => toggleOption(option)}
+                onPointerEnter={() => {
+                  highlightOption(index, option);
+                }}
+                onPointerMove={() => {
+                  highlightOption(index, option);
+                }}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  pointerSelectedValueRef.current = option.value;
+                  highlightOption(index, option);
+                  toggleOption(option);
+                }}
+                onClick={() => {
+                  if (pointerSelectedValueRef.current === option.value) {
+                    pointerSelectedValueRef.current = null;
+                    return;
+                  }
+
+                  toggleOption(option);
+                }}
                 style={{
                   width: '100%',
                   border: 'none',

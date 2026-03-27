@@ -1,0 +1,435 @@
+{
+  "class_id": "[classid]",
+  "features": [
+    {
+      "id": "core_feature_id",
+      "name": "Core Feature Name",
+      "description": "Player-facing rules text goes here.",
+      "level": 1,
+      "type": "paper"
+    },
+    {
+      "id": "core_choice_feature_id",
+      "name": "Core Choice Feature Name",
+      "description": "Player-facing rules text for a choice feature goes here.",
+      "level": 1,
+      "type": "choice",
+      "choice": {
+        "kind": "mode_choice",
+        "count": 1,
+        "count_by_level": [
+          { "level": 1, "value": 1 },
+          { "level": 5, "value": 2 }
+        ],
+        "options": [
+          {
+            "id": "option_a",
+            "label": "Option A"
+          },
+          {
+            "id": "option_b",
+            "label": "Option B"
+          }
+        ]
+      }
+    },
+    {
+      "id": "expertise_feature_id",
+      "name": "Expertise",
+      "description": "Player-facing rules text for a feature that upgrades existing skill proficiencies to expertise goes here.",
+      "level": 1,
+      "type": "choice",
+      "choice": {
+        "kind": "expertise",
+        "count": 2,
+        "pool": "owned_skill_proficiencies_without_expertise"
+      }
+    },
+    {
+      "id": "weapon_mastery_feature_id",
+      "name": "Weapon Mastery",
+      "description": "Player-facing rules text for a feature that grants weapon mastery choices goes here.",
+      "level": 1,
+      "type": "choice",
+      "choice": {
+        "kind": "weapon_mastery",
+        "count": 2,
+        "pool": "simple_or_martial_melee_weapon_kinds"
+      }
+    },
+    {
+      "id": "subclass_choice_feature_id",
+      "name": "Subclass Choice Feature Name",
+      "description": "Player-facing rules text for subclass selection goes here.",
+      "level": 3,
+      "type": "choice",
+      "choice": {
+        "kind": "subclass",
+        "count": 1,
+        "pool": "sorcerer_subclasses"
+      }
+    },
+    {
+      "id": "resource_feature_id",
+      "name": "Resource Feature Name",
+      "description": "Player-facing rules text for a resource feature goes here.",
+      "level": 1,
+      "type": "resource",
+      "resource": {
+        "kind": "class_resources",
+        "resources": [
+          {
+            "resource_id": "resource_id",
+            "resource_name": "Resource Name",
+            "scaling": [
+              { "level": 1, "value": "0" },
+              { "level": 2, "value": "1" },
+              { "level": 3, "value": "2" }
+            ]
+          },
+          {
+            "resource_id": "resource_die_id",
+            "resource_name": "Resource Die",
+            "scaling": [
+              { "level": 1, "value": "d6" },
+              { "level": 5, "value": "d8" },
+              { "level": 11, "value": "d10" }
+            ]
+          },
+          {
+            "resource_id": "secondary_resource_id",
+            "resource_name": "Secondary Resource",
+            "scaling": [
+              { "level": 1, "value": "0" },
+              { "level": 3, "value": "1" },
+              { "level": 7, "value": "2" }
+            ]
+          }
+        ],
+        "recovery": {
+          "short_rest": "all",
+          "long_rest": "all"
+        }
+      },
+      "feature_stack": "resource_feature_stack",
+      "stack_role": "base"
+    },
+    {
+      "id": "spellcasting_feature_id",
+      "name": "Spellcasting",
+      "description": "Player-facing rules text for class spellcasting goes here.",
+      "level": 1,
+      "type": "paper",
+      "resource": {
+        "kind": "class_resources",
+        "resources": [
+          {
+            "resource_id": "cantrips",
+            "resource_name": "Cantrips",
+            "scaling": [
+              { "level": 1, "value": "0" },
+              { "level": 2, "value": "0" },
+              { "level": 3, "value": "0" }
+            ]
+          },
+          {
+            "resource_id": "prepared_spells",
+            "resource_name": "Prepared Spells",
+            "scaling": [
+              { "level": 1, "value": "0" },
+              { "level": 2, "value": "0" },
+              { "level": 3, "value": "0" }
+            ]
+          },
+          {
+            "resource_id": "spell_slots",
+            "resource_name": "Spell Slots",
+            "scaling": [
+              { "level": 1, "value": "0" },
+              { "level": 2, "value": "2" },
+              { "level": 3, "value": "3|1" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "derived_output_feature_id",
+      "name": "Derived Output Feature Name",
+      "description": "Player-facing rules text for a stable sheet-facing derived feature goes here.",
+      "level": 1,
+      "type": "derived_output",
+      "derived_effects": {
+        "attack_count_by_level": [
+          { "level": 1, "value": 1 },
+          { "level": 5, "value": 2 },
+          { "level": 11, "value": 3 }
+        ],
+        "speed_bonus_by_level": [
+          { "level": 1, "value": 0 },
+          { "level": 2, "value": 10 }
+        ],
+        "resistances": ["damage_type_id"],
+        "condition_immunities": ["condition_id"],
+        "ability_score_bonuses": [
+          {
+            "abilities": ["cha"],
+            "bonus": 2,
+            "maximum": 22
+          }
+        ],
+        "saving_throw_proficiencies": ["str", "dex"],
+        "initiative": {
+          "advantage": true
+        },
+        "skill_check_advantages": ["skill_id"],
+        "death_saves": {
+          "advantage": true,
+          "critical_success_on": [20]
+        }
+      }
+    },
+    {
+      "id": "compound_choice_feature_id",
+      "name": "Compound Choice Feature Name",
+      "description": "Player-facing rules text for a feature that grants multiple coordinated selections goes here.",
+      "level": 1,
+      "type": "choice",
+      "choice": {
+        "kind": "compound",
+        "components": [
+          {
+            "kind": "skill_proficiency",
+            "pool": "skill_proficiencies",
+            "count": 1
+          },
+          {
+            "kind": "tool_proficiency",
+            "source": "artisan_tools",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "spell_choice_feature_id",
+      "name": "Spell Choice Feature Name",
+      "description": "Player-facing rules text for a feature that grants a spell choice goes here.",
+      "level": 1,
+      "type": "choice",
+      "choice": {
+        "kind": "spell_choice",
+        "count": 1,
+        "spell_filters": {
+          "level": 1,
+          "schools": ["school_id"],
+          "ritual_only": false
+        }
+      }
+    },
+    {
+      "id": "spell_grant_feature_id",
+      "name": "Granted Spell Feature Name",
+      "description": "Player-facing rules text for a feature that grants discrete spells goes here.",
+      "level": 1,
+      "type": "paper",
+      "effects": {
+        "spell_grants": [
+          { "kind": "fixed", "level": 1, "spells": ["spell_id_a", "spell_id_b"], "free_cast": 1 },
+          { "kind": "choice", "count": 1, "level": 1, "free_cast": 0 },
+          { "kind": "choice", "count": 1, "level": 1, "schools": ["school_id"], "free_cast": 0 },
+          { "kind": "choice", "count": 1, "level": 1, "ritual_only": true, "free_cast": 0 },
+          { "kind": "fixed", "context": "context_id", "level": 2, "spells": ["spell_id_c"], "free_cast": 1 },
+          { "kind": "fixed", "context": "arid", "level": 3, "spells": ["spell_id_d"], "free_cast": 1 }
+        ]
+      }
+    },
+    {
+      "id": "paper_spell_grant_resource_feature_id",
+      "name": "Paper Spell Grant Resource Feature Name",
+      "description": "Player-facing rules text for a paper feature that grants spells and tracks a free-use resource goes here.",
+      "level": 1,
+      "type": "paper",
+      "effects": {
+        "spell_grants": [
+          { "kind": "fixed", "level": 1, "spells": ["spell_id_a", "spell_id_b"], "free_cast": 1 }
+        ]
+      },
+      "resource": {
+        "kind": "uses",
+        "value": {
+          "formula": "ability_modifier",
+          "minimum": 1
+        },
+        "recovery": {
+          "long_rest": "all"
+        },
+        "applies_to": "free_cast_resource_id"
+      }
+    },
+    {
+      "id": "stack_modifier_feature_id",
+      "name": "Stack Modifier Feature Name",
+      "description": "Player-facing rules text for an improvement or extension of an earlier feature goes here.",
+      "level": 5,
+      "type": "paper",
+      "feature_stack": "resource_feature_stack",
+      "stack_role": "modifier",
+      "modifies": ["resource_feature_id"]
+    },
+    {
+      "id": "choice_upgrade_feature_id",
+      "name": "Choice Upgrade Feature Name",
+      "description": "Player-facing rules text for a later feature that improves one of the options chosen earlier goes here.",
+      "level": 7,
+      "type": "paper",
+      "choice_option_upgrades": {
+        "option_a": {},
+        "option_b": {}
+      },
+      "feature_stack": "core_choice_feature_stack",
+      "stack_role": "modifier",
+      "modifies": ["core_choice_feature_id"]
+    },
+    {
+      "id": "stack_option_feature_id",
+      "name": "Stack Option Feature Name",
+      "description": "Player-facing rules text for an option granted under a shared resource goes here.",
+      "level": 3,
+      "type": "paper",
+      "feature_stack": "resource_feature_stack",
+      "stack_role": "option"
+    },
+    {
+      "id": "stack_consumer_feature_id",
+      "name": "Stack Consumer Feature Name",
+      "description": "Player-facing rules text for a feature that spends from an existing shared resource goes here.",
+      "level": 7,
+      "type": "paper",
+      "feature_stack": "resource_feature_stack",
+      "stack_role": "consumer",
+      "modifies": ["resource_feature_id"]
+    }
+  ],
+  "subclasses": {
+    "subclass_id": {
+      "features": [
+        {
+          "id": "subclass_feature_id",
+          "name": "Subclass Feature Name",
+          "description": "Player-facing rules text for a subclass feature goes here.",
+          "level": 3,
+          "type": "paper"
+        },
+        {
+          "id": "subclass_resource_feature_id",
+          "name": "Subclass Resource Feature Name",
+          "description": "Player-facing rules text for a subclass resource goes here.",
+          "level": 3,
+          "type": "resource",
+          "resource": {
+            "kind": "class_resources",
+            "resources": [
+              {
+                "resource_id": "subclass_resource_id",
+                "resource_name": "Subclass Resource Name",
+                "scaling": [
+                  { "level": 3, "value": "1" },
+                  { "level": 6, "value": "2" },
+                  { "level": 10, "value": "3" }
+                ]
+              }
+            ],
+            "recovery": {
+              "long_rest": "all"
+            }
+          },
+          "feature_stack": "subclass_resource_stack",
+          "stack_role": "base"
+        },
+        {
+          "id": "subclass_spell_grant_feature_id",
+          "name": "Subclass Spell Grant Feature Name",
+          "description": "Player-facing rules text for subclass spell grants goes here.",
+          "level": 3,
+          "type": "paper",
+          "effects": {
+            "spell_grants": [
+              { "kind": "fixed", "level": 1, "spells": ["spell_id_a", "spell_id_b"], "free_cast": 1 },
+              { "kind": "fixed", "level": 2, "spells": ["spell_id_c"], "free_cast": 0 },
+              { "kind": "fixed", "context": "alternate_form", "level": 3, "spells": ["spell_id_d"], "free_cast": 1 }
+            ]
+          }
+        },
+        {
+          "id": "subclass_choice_feature_id",
+          "name": "Subclass Choice Feature Name",
+          "description": "Player-facing rules text for a subclass choice goes here.",
+          "level": 6,
+          "type": "choice",
+          "choice": {
+            "kind": "mode_choice",
+            "count": 1,
+            "count_by_level": [
+              { "level": 6, "value": 1 },
+              { "level": 14, "value": 2 }
+            ],
+            "options": [
+              {
+                "id": "subclass_option_a",
+                "label": "Subclass Option A"
+              },
+              {
+                "id": "subclass_option_b",
+                "label": "Subclass Option B"
+              }
+            ]
+          }
+        },
+        {
+          "id": "subclass_compound_choice_feature_id",
+          "name": "Subclass Compound Choice Feature Name",
+          "description": "Player-facing rules text for a subclass feature that grants multiple coordinated selections goes here.",
+          "level": 10,
+          "type": "choice",
+          "choice": {
+            "kind": "compound",
+            "components": [
+              {
+                "kind": "skill_proficiency",
+                "pool": "skill_proficiencies",
+                "count": 1
+              },
+              {
+                "kind": "language",
+                "source": "languages",
+                "count": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "subclass_derived_feature_id",
+          "name": "Subclass Derived Feature Name",
+          "description": "Player-facing rules text for a stable subclass-derived feature goes here.",
+          "level": 14,
+          "type": "derived_output",
+          "derived_effects": {
+            "resistances": ["damage_type_id"],
+            "condition_immunities": ["condition_id"]
+          }
+        },
+        {
+          "id": "subclass_stack_modifier_feature_id",
+          "name": "Subclass Stack Modifier Feature Name",
+          "description": "Player-facing rules text for a subclass feature that improves a previous subclass feature goes here.",
+          "level": 18,
+          "type": "paper",
+          "feature_stack": "subclass_resource_stack",
+          "stack_role": "modifier",
+          "modifies": ["subclass_resource_feature_id"]
+        }
+      ]
+    }
+  }
+}

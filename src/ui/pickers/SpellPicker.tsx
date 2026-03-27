@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import type { TriggerComponentProps } from '../../engine/triggerTypes';
 import { resolveSpellPicker } from '../../resolvers/spellResolver';
@@ -10,16 +10,19 @@ import {
 export function SpellPicker({ context, onResolve }: TriggerComponentProps) {
   const currentSpellId = context.draft.identity.spellId;
   const resolved = resolveSpellPicker(context.draft);
+  const field = resolved.status === 'ready' ? resolved.fields[0] : undefined;
+  const shouldSkip =
+    resolved.status === 'skip' || !field || !field.enum || field.enum.length === 0;
 
-  if (resolved.status === 'skip') {
+  useEffect(() => {
+    if (!shouldSkip) {
+      return;
+    }
+
     onResolve({ status: 'skip' });
-    return null;
-  }
+  }, [onResolve, shouldSkip]);
 
-  const field = resolved.fields[0];
-
-  if (!field || !field.enum || !field.enum.length) {
-    onResolve({ status: 'skip' });
+  if (shouldSkip) {
     return null;
   }
 
@@ -32,7 +35,7 @@ export function SpellPicker({ context, onResolve }: TriggerComponentProps) {
 
   return (
     <HoverChoiceField
-      label={field.label}
+      label={field.title}
       options={options}
       value={currentSpellId ?? ''}
       onChange={(value) => {

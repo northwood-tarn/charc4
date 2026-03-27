@@ -55,5 +55,11 @@ export function applyPatch(
           ...patch.featFollowupSelections,
         }
       : draft.featFollowupSelections,
+    classFeatureSelections: patch.classFeatureSelections
+      ? {
+          ...draft.classFeatureSelections,
+          ...patch.classFeatureSelections,
+        }
+      : draft.classFeatureSelections,
   };
 }

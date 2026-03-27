@@ -31,6 +31,10 @@ export type FeatFollowupSelectionValue = string | string[];
 
 export type FeatFollowupSelections = Record<string, FeatFollowupSelectionValue | undefined>;
 
+export type FeatureSelectionValue = string | string[];
+
+export type FeatureSelections = Record<string, FeatureSelectionValue | undefined>;
+
 export type CharacterIdentity = {
   name?: string;
   classId?: string;
@@ -40,8 +44,6 @@ export type CharacterIdentity = {
   speciesId?: string;
   lineageId?: string;
   languageId?: string;
-  classFeatureId?: string;
-  speciesFeatureId?: string;
 };
 
 export type CharacterDraft = {
@@ -50,4 +52,6 @@ export type CharacterDraft = {
   abilityContributions: AbilityContributions;
   featSlots: FeatSlot[];
   featFollowupSelections: FeatFollowupSelections;
+  classFeatureSelections: FeatureSelections;
+  speciesFeatureSelections: FeatureSelections;
 };

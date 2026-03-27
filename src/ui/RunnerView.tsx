@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { applyPatch } from '../engine/applyPatch';
 import { getScriptNode } from '../engine/scriptRunner';
 import { triggerRegistry } from '../engine/triggerRegistry';
-import type { TriggerResult } from '../engine/triggerTypes';
 import { useCharacterStore } from '../store/characterStore';
 import { DebugPanel } from './DebugPanel';
 
@@ -14,10 +13,6 @@ type BuilderStep = {
 };
 
 type HoverDetail = ReactNode;
-
-type TriggerResolveOptions = {
-  stayOnNode?: boolean;
-};
 
 const BUILDER_STEPS: BuilderStep[] = [
   { id: 'start', label: 'Name' },
@@ -57,9 +52,6 @@ function getNextVisibleStepId(nodeId: string): string | null {
 export function RunnerView() {
   const [currentNodeId, setCurrentNodeId] = useState('start');
   const [highestUnlockedIndex, setHighestUnlockedIndex] = useState(0);
-  const [lastTriggerResult, setLastTriggerResult] = useState<TriggerResult | null>(
-    null
-  );
   const [hoverDetail, setHoverDetail] = useState<HoverDetail | null>(null);
 
   const draft = useCharacterStore((state) => state.draft);
@@ -92,48 +84,52 @@ export function RunnerView() {
 
     setCurrentNodeId('start');
     setHighestUnlockedIndex(0);
-    setLastTriggerResult(null);
     setHoverDetail(null);
   };
 
-  const handleTriggerResolve = (result: TriggerResult) => {
-    setLastTriggerResult(result);
-    const { stayOnNode = false } = result as TriggerResult & TriggerResolveOptions;
+  const handleTriggerResolve = (result: any) => {
+    const nodeId = currentNodeId;
+    const nextNodeId = currentNode.next ?? null;
+    const stayOnNode = Boolean(result?.stayOnNode);
 
-    if (result.status === 'error') {
+    if (result?.status === 'error') {
       throw new Error(result.message);
     }
 
-    if (result.status === 'skip') {
+    if (result?.status === 'skip') {
       if (result.nextNodeId) {
         moveToNode(result.nextNodeId);
         return;
       }
 
-      if (currentNode.next) {
-        moveToNode(currentNode.next);
+      if (nextNodeId) {
+        moveToNode(nextNodeId);
       }
 
       return;
     }
 
-    if (result.patch) {
+    if (result?.patch) {
       useCharacterStore.setState((state) => ({
         draft: applyPatch(state.draft, result.patch),
       }));
+    }
+
+    if (currentNodeId !== nodeId) {
+      return;
     }
 
     if (stayOnNode) {
       return;
     }
 
-    if (result.nextNodeId) {
+    if (result?.nextNodeId) {
       moveToNode(result.nextNodeId);
       return;
     }
 
-    if (currentNode.next) {
-      moveToNode(currentNode.next);
+    if (nextNodeId) {
+      moveToNode(nextNodeId);
     }
   };
 
@@ -359,12 +355,7 @@ export function RunnerView() {
       </div>
     </div>
 
-      <DebugPanel
-        currentNodeId={currentNodeId}
-        currentNode={currentNode}
-        draft={draft}
-        lastTriggerResult={lastTriggerResult}
-      />
+      <DebugPanel draft={draft} />
     </div>
   );
 }
